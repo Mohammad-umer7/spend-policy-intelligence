@@ -338,6 +338,7 @@ export interface RecommendedAction {
     | "review_possible_duplicate"
     | "request_missing_receipt"
     | "request_operational_justification"
+    | "request_quotations"
     | "no_action_required";
   label: string;
   labelAr: string;

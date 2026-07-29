@@ -1,26 +1,171 @@
 @import "tailwindcss";
 
+/*
+  Spend Policy Intelligence — design tokens.
+
+  The palette is a deep midnight blue with a restrained glass treatment. Glass
+  is used for chrome and summary surfaces only; tables, policy text, receipts
+  and explanations sit on solid, high-contrast panels so they stay readable on
+  a projector.
+*/
+
+@theme {
+  --color-ink-950: #05070f;
+  --color-ink-900: #080b18;
+  --color-ink-850: #0b1022;
+  --color-ink-800: #0f142b;
+  --color-ink-700: #161d3a;
+  --color-ink-600: #1f2748;
+
+  --color-mist-50: #f5f7ff;
+  --color-mist-100: #e6ebfa;
+  --color-mist-200: #c8d2ee;
+  --color-mist-300: #a3b0d8;
+  --color-mist-400: #7c8bba;
+  --color-mist-500: #5d6b98;
+
+  --color-pass-400: #34d399;
+  --color-pass-500: #10b981;
+  --color-pass-900: #052e23;
+
+  --color-flag-400: #fbbf24;
+  --color-flag-500: #f59e0b;
+  --color-flag-900: #3b2606;
+
+  --color-escalate-400: #fb7185;
+  --color-escalate-500: #f43f5e;
+  --color-escalate-900: #3f0d1a;
+
+  --color-info-400: #38bdf8;
+  --color-info-500: #0ea5e9;
+  --color-info-900: #062a3f;
+
+  --color-accent-400: #818cf8;
+  --color-accent-500: #6366f1;
+  --color-accent-600: #4f46e5;
+
+  --font-sans: var(--font-geist-sans), "Inter", system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-arabic: "Noto Kufi Arabic", var(--font-geist-sans), system-ui, sans-serif;
+
+  --radius-panel: 1rem;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: dark;
+  --surface-glass: rgb(255 255 255 / 0.045);
+  --surface-solid: #0d1226;
+  --surface-raised: #121a2e;
+  --hairline: rgb(255 255 255 / 0.09);
+  --hairline-strong: rgb(255 255 255 / 0.16);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  /* Reserve the scrollbar so route changes never shift layout horizontally. */
+  scrollbar-gutter: stable;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-ink-950);
+  color: var(--color-mist-100);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100dvh;
+  /* Restrained ambient light; static, so nothing moves behind the data. */
+  background-image:
+    radial-gradient(72rem 42rem at 12% -8%, rgb(79 70 229 / 0.16), transparent 62%),
+    radial-gradient(60rem 38rem at 92% 4%, rgb(14 165 233 / 0.11), transparent 58%),
+    radial-gradient(48rem 34rem at 50% 108%, rgb(99 102 241 / 0.07), transparent 60%);
+  background-attachment: fixed;
+}
+
+[dir="rtl"] body {
+  font-family: var(--font-arabic);
+}
+
+/* Arabic numerals stay Latin so figures match the ledger exactly. */
+[dir="rtl"] {
+  font-feature-settings: "lnum";
+}
+
+@layer components {
+  .glass {
+    background-color: var(--surface-glass);
+    backdrop-filter: blur(18px) saturate(120%);
+    -webkit-backdrop-filter: blur(18px) saturate(120%);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-panel);
+  }
+
+  /* Solid panel for anything the reviewer has to read closely. */
+  .panel {
+    background-color: var(--surface-solid);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-panel);
+  }
+
+  .panel-raised {
+    background-color: #121a2e;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-panel);
+  }
+
+  .hairline-t {
+    border-top: 1px solid var(--hairline);
+  }
+  .hairline-b {
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  .elevate {
+    transition:
+      transform 160ms cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 160ms ease,
+      background-color 160ms ease;
+  }
+  .elevate:hover {
+    transform: translateY(-1px);
+    border-color: var(--hairline-strong);
+  }
+
+  .numeric {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+  }
+}
+
+/* Focus is always visible — this is a keyboard-driven review tool. */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-accent-400);
+  outline-offset: 2px;
+  border-radius: 0.375rem;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgb(255 255 255 / 0.12);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(255 255 255 / 0.2);
+  background-clip: content-box;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

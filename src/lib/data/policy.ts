@@ -278,8 +278,14 @@ export function threshold(clauseId: string, key: string): number {
 }
 
 /** The company licence register, used by clause SUB-6.1. */
+export type CapabilityKey =
+  | "project_management"
+  | "business_intelligence"
+  | "creative_production";
+
 export interface LicenceRegisterEntry {
   tool: string;
+  capabilityKey: CapabilityKey;
   capability: string;
   capabilityAr: string;
   seats: number;
@@ -291,6 +297,7 @@ export interface LicenceRegisterEntry {
 export const licenceRegister: LicenceRegisterEntry[] = [
   {
     tool: "Atlas Workspace",
+    capabilityKey: "project_management",
     capability: "Project & task management",
     capabilityAr: "إدارة المشاريع والمهام",
     seats: 400,
@@ -300,6 +307,7 @@ export const licenceRegister: LicenceRegisterEntry[] = [
   },
   {
     tool: "Meridian Analytics",
+    capabilityKey: "business_intelligence",
     capability: "Business intelligence dashboards",
     capabilityAr: "لوحات معلومات ذكاء الأعمال",
     seats: 60,
@@ -309,6 +317,7 @@ export const licenceRegister: LicenceRegisterEntry[] = [
   },
   {
     tool: "Cedar Design Cloud",
+    capabilityKey: "creative_production",
     capability: "Creative asset production",
     capabilityAr: "إنتاج الأصول الإبداعية",
     seats: 25,
@@ -316,4 +325,33 @@ export const licenceRegister: LicenceRegisterEntry[] = [
     renewsAt: "2026-09-30T00:00:00+04:00",
     annualCostAed: 61_500,
   },
+];
+
+/** Maps every tool the company buys or is asked to buy to its capability. */
+export const softwareCapabilityIndex: Record<string, CapabilityKey> = {
+  "Atlas Workspace": "project_management",
+  "Trailhead PM": "project_management",
+  "Meridian Analytics": "business_intelligence",
+  "Northlight BI": "business_intelligence",
+  "Cedar Design Cloud": "creative_production",
+};
+
+/**
+ * Returns an existing enterprise licence that already covers the requested
+ * capability, or null when the purchase introduces genuinely new capability.
+ */
+export function overlappingLicence(tool: string | undefined): LicenceRegisterEntry | null {
+  if (!tool) return null;
+  const capability = softwareCapabilityIndex[tool];
+  if (!capability) return null;
+  return (
+    licenceRegister.find((entry) => entry.capabilityKey === capability && entry.tool !== tool) ?? null
+  );
+}
+
+/** UAE public holidays observed by the company in the current policy year. */
+export const publicHolidays: { date: string; name: string; nameAr: string }[] = [
+  { date: "2026-01-01", name: "New Year's Day", nameAr: "رأس السنة الميلادية" },
+  { date: "2026-12-02", name: "UAE National Day", nameAr: "اليوم الوطني للإمارات" },
+  { date: "2026-12-03", name: "UAE National Day holiday", nameAr: "عطلة اليوم الوطني للإمارات" },
 ];
