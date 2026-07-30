@@ -1,7 +1,7 @@
 import { transactions } from "@/lib/data/transactions";
 import { InvestigationClient } from "@/components/investigation/investigation-client";
 
-/** Every synthetic case is prerendered so navigation in the demo is instant. */
+/** Every case is prerendered so navigation is instant. */
 export function generateStaticParams() {
   return transactions.map((transaction) => ({ id: transaction.id }));
 }

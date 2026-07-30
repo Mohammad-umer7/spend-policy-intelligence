@@ -1,4 +1,4 @@
-import type {
+﻿import type {
   Employee,
   EvidenceAssessment,
   EvidenceKind,
@@ -7,7 +7,7 @@ import type {
   Transaction,
   Verdict,
 } from "../types";
-import { DEMO_NOW_MS, dayKey, formatAed, formatWeekday, isWeekend } from "../format";
+import { REFERENCE_NOW_MS, dayKey, formatAed, formatWeekday, isWeekend } from "../format";
 import { overlappingLicence, publicHolidays, threshold } from "../data/policy";
 import { exceedsHotelBand, hotelBandForTrip, isFuelLocationMismatch } from "./evidence";
 
@@ -38,7 +38,7 @@ function hasEvidence(ctx: RuleContext, kind: EvidenceKind): boolean {
 }
 
 /** Whole business days (excluding Saturday and Sunday) since a timestamp. */
-export function businessDaysSince(iso: string, nowMs: number = DEMO_NOW_MS): number {
+export function businessDaysSince(iso: string, nowMs: number = REFERENCE_NOW_MS): number {
   const start = Date.parse(iso);
   if (Number.isNaN(start) || start >= nowMs) return 0;
   let count = 0;

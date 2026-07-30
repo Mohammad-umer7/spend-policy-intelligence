@@ -1,5 +1,5 @@
-import type { CaseRecord, DepartmentId } from "../types";
-import { DEMO_NOW_MS } from "../format";
+﻿import type { CaseRecord, DepartmentId } from "../types";
+import { REFERENCE_NOW_MS } from "../format";
 
 /**
  * Queue filtering, kept as pure functions so the same logic drives the table,
@@ -88,7 +88,7 @@ export function filterCases(cases: CaseRecord[], query: QueueQuery): CaseRecord[
     if (!matchesFilter(record, query.filter)) return false;
     if (query.department !== "all" && record.department.id !== query.department) return false;
     if (!amountPredicates[query.amount](record.transaction.amountAed)) return false;
-    if (window !== null && DEMO_NOW_MS - Date.parse(record.transaction.occurredAt) > window) {
+    if (window !== null && REFERENCE_NOW_MS - Date.parse(record.transaction.occurredAt) > window) {
       return false;
     }
     return matchesSearch(record, query.search);

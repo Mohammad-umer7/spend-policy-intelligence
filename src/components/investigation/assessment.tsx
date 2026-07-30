@@ -2,24 +2,14 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import {
-  AlertCircle,
-  CheckCircle2,
-  CircleDashed,
-  GitCompareArrows,
-  Info,
-  Languages,
-  ShieldQuestion,
-} from "lucide-react";
-import { motion } from "framer-motion";
 import { cn } from "@/lib/cn";
 import type { CaseRecord } from "@/lib/types";
-import { formatAed, formatDateTime, formatPercent } from "@/lib/format";
+import { formatAed, formatPercent } from "@/lib/format";
 import { evidenceLabel } from "@/lib/engine/evidence";
 import { isOpen } from "@/lib/engine/rules";
 import { useAppliedOnce } from "@/lib/hooks/use-applied-once";
 import { useLocale, useLocalised, useT } from "@/lib/store/hooks";
-import { Chip, Meter, Panel, SectionHeading, VerdictBadge } from "@/components/ui/primitives";
+import { Meter, Panel, SectionHeading, VerdictBadge } from "@/components/ui/primitives";
 
 /**
  * Fetches a Claude-written explanation when the deployment is configured for
@@ -100,100 +90,80 @@ export function AssessmentColumn({ record }: { record: CaseRecord }) {
   const money = (n: number) => formatAed(n, locale);
   const budget = analysis.budgetImpact;
 
-  const verdictAccent =
-    analysis.verdict === "escalate"
-      ? "from-escalate-500/18"
-      : analysis.verdict === "flag"
-        ? "from-flag-500/16"
-        : "from-pass-500/14";
-
   return (
-    <div className="space-y-3">
-      {/* Verdict */}
-      <Panel className="overflow-hidden">
-        <div className={cn("bg-gradient-to-b to-transparent px-4 pb-4 pt-4", verdictAccent)}>
-          <div className="flex flex-wrap items-center gap-2">
+    <div className="space-y-4">
+      <Panel>
+        <div className="px-4 pt-4">
+          <div className="flex flex-wrap items-baseline gap-2.5">
             <VerdictBadge
               verdict={analysis.verdict}
               label={t(`verdict.${analysis.verdict}`)}
               size="lg"
             />
-            <span className="text-[0.6875rem] text-mist-400">
+            <span className="text-[0.6875rem] text-ink-500">
               {t(`verdict.${analysis.verdict}.help`)}
             </span>
           </div>
 
-          <h2 className="mt-3 text-base font-semibold leading-snug text-mist-50">
+          <h2 className="mt-2 text-[0.9375rem] font-semibold leading-snug text-ink-900">
             {L(narrative.headline, narrative.headlineAr)}
           </h2>
-
-          {/* Indicator row — deliberately no model confidence percentage */}
-          <div className="mt-3.5 grid grid-cols-2 gap-2 sm:grid-cols-4">
-            <Indicator
-              label={t("case.policyCoverage")}
-              value={t(`case.coverage.${analysis.policyCoverage}`)}
-              tone={analysis.policyCoverage === "complete" ? "good" : "warn"}
-            />
-            <Indicator
-              label={t("case.evidenceCompleteness")}
-              value={t("case.evidenceOf", {
-                present: analysis.evidence.presentCount,
-                required: analysis.evidence.requiredCount,
-              })}
-              tone={analysis.evidence.missing.length === 0 ? "good" : "warn"}
-            />
-            <Indicator
-              label={t("risk.label")}
-              value={t(`risk.${analysis.riskLevel}`)}
-              tone={
-                analysis.riskLevel === "high"
-                  ? "danger"
-                  : analysis.riskLevel === "medium"
-                    ? "warn"
-                    : "good"
-              }
-            />
-            <Indicator
-              label={t("case.humanReview")}
-              value={
-                analysis.humanReviewRequired
-                  ? t("case.humanReviewRequired")
-                  : t("case.humanReviewNotRequired")
-              }
-              tone={analysis.humanReviewRequired ? "warn" : "good"}
-            />
-          </div>
         </div>
 
-        {/* Explanation with its own language switch */}
-        <div className="hairline-t px-4 py-4">
+        {/* Indicator row — deliberately no model confidence percentage */}
+        <div className="mt-3.5 grid grid-cols-2 divide-x divide-[--hairline] border-y border-[--hairline] rtl:divide-x-reverse sm:grid-cols-4">
+          <Indicator
+            label={t("case.policyCoverage")}
+            value={t(`case.coverage.${analysis.policyCoverage}`)}
+            tone={analysis.policyCoverage === "complete" ? "neutral" : "warn"}
+          />
+          <Indicator
+            label={t("case.evidenceCompleteness")}
+            value={t("case.evidenceOf", {
+              present: analysis.evidence.presentCount,
+              required: analysis.evidence.requiredCount,
+            })}
+            tone={analysis.evidence.missing.length === 0 ? "neutral" : "warn"}
+          />
+          <Indicator
+            label={t("risk.label")}
+            value={t(`risk.${analysis.riskLevel}`)}
+            tone={
+              analysis.riskLevel === "high"
+                ? "danger"
+                : analysis.riskLevel === "medium"
+                  ? "warn"
+                  : "neutral"
+            }
+          />
+          <Indicator
+            label={t("case.humanReview")}
+            value={
+              analysis.humanReviewRequired
+                ? t("case.humanReviewRequired")
+                : t("case.humanReviewNotRequired")
+            }
+            tone={analysis.humanReviewRequired ? "warn" : "neutral"}
+          />
+        </div>
+
+        <div className="px-4 py-4">
           <div className="flex items-center justify-between gap-3">
-            <p className="text-[0.6875rem] uppercase tracking-wide text-mist-500">
-              {t("case.explanation")}
-            </p>
-            <div className="flex items-center gap-1 rounded-lg border border-white/8 bg-white/3 p-0.5">
+            <p className="label">{t("case.explanation")}</p>
+            <div className="flex items-center gap-0.5">
               {(["en", "ar"] as const).map((value) => (
                 <button
                   key={value}
                   onClick={() => setExplanationLocale(value)}
+                  aria-pressed={explanationLocale === value}
                   className={cn(
-                    "relative rounded-md px-2 py-1 text-[0.6875rem] transition-colors",
+                    "rounded-[0.1875rem] px-1.5 py-0.5 text-[0.6875rem] transition-colors",
                     explanationLocale === value
-                      ? "text-mist-50"
-                      : "text-mist-400 hover:text-mist-100",
+                      ? "bg-ink-100 font-medium text-ink-900"
+                      : "text-ink-500 hover:text-ink-900",
                   )}
                 >
-                  {explanationLocale === value ? (
-                    <motion.span
-                      layoutId={`explain-lang-${record.transaction.id}`}
-                      className="absolute inset-0 -z-10 rounded-md border border-white/12 bg-white/8"
-                      transition={{ type: "spring", stiffness: 420, damping: 34 }}
-                    />
-                  ) : null}
-                  <span className="inline-flex items-center gap-1">
-                    <Languages className="h-3 w-3" />
-                    {value === "en" ? "English" : "العربية"}
-                  </span>
+                  {value === "en" ? "English" : "العربية"}
                 </button>
               ))}
             </div>
@@ -202,32 +172,21 @@ export function AssessmentColumn({ record }: { record: CaseRecord }) {
           <p
             key={explanationLocale}
             dir={explanationLocale === "ar" ? "rtl" : "ltr"}
-            className={cn(
-              "mt-2.5 text-[0.875rem] leading-[1.75] text-mist-100",
-              explanationLocale === "ar" && "font-[family-name:var(--font-noto-kufi)]",
-            )}
+            className="mt-2 text-[0.875rem] leading-[1.7] text-ink-800"
           >
             {explanationLocale === "ar" ? narrative.explanationAr : narrative.explanation}
           </p>
 
           {analysis.uncertainty ? (
-            <div className="mt-3 flex items-start gap-2 rounded-lg border border-flag-500/20 bg-flag-500/8 px-3 py-2.5">
-              <ShieldQuestion className="mt-0.5 h-3.5 w-3.5 shrink-0 text-flag-400" />
-              <div>
-                <p className="text-[0.6875rem] font-medium uppercase tracking-wide text-flag-400">
-                  {t("case.uncertainty")}
-                </p>
-                <p className="mt-0.5 text-[0.75rem] leading-relaxed text-mist-300">
-                  {L(analysis.uncertainty, analysis.uncertaintyAr ?? analysis.uncertainty)}
-                </p>
-              </div>
+            <div className="mt-3 border-s-2 border-flag-600 ps-3">
+              <p className="label text-flag-700">{t("case.uncertainty")}</p>
+              <p className="mt-0.5 text-[0.75rem] leading-relaxed text-ink-700">
+                {L(analysis.uncertainty, analysis.uncertaintyAr ?? analysis.uncertainty)}
+              </p>
             </div>
           ) : null}
 
-          <p className="mt-3 flex items-start gap-1.5 text-[0.6875rem] leading-relaxed text-mist-500">
-            <Info className="mt-0.5 h-3 w-3 shrink-0" />
-            {t("case.aiNotice")}
-          </p>
+          <p className="mt-3 text-[0.6875rem] leading-relaxed text-ink-400">{t("case.aiNotice")}</p>
         </div>
       </Panel>
 
@@ -237,67 +196,59 @@ export function AssessmentColumn({ record }: { record: CaseRecord }) {
           title={t("case.findings")}
           hint={analysis.findings.map((f) => f.clauseId).join(" · ")}
         />
-        <div className="mt-3 space-y-2">
+        <ul className="mt-2 divide-y divide-[--hairline]">
           {analysis.findings.map((finding) => {
             const open = isOpen(finding);
             return (
-              <div
-                key={finding.clauseId}
-                className={cn(
-                  "rounded-lg border px-3 py-2.5",
-                  open
-                    ? finding.outcome === "breach"
-                      ? "border-escalate-500/25 bg-escalate-500/6"
-                      : "border-flag-500/25 bg-flag-500/6"
-                    : "border-white/8 bg-white/3",
-                )}
-              >
-                <div className="flex flex-wrap items-center gap-2">
+              <li key={finding.clauseId} className="py-3 first:pt-2">
+                <div className="flex flex-wrap items-baseline gap-2">
                   <Link
                     href={`/policy?clause=${finding.clauseId}`}
-                    className="numeric rounded border border-white/12 bg-white/5 px-1.5 py-0.5 font-mono text-[0.6875rem] text-mist-200 transition-colors hover:border-white/25 hover:text-mist-50"
+                    className="numeric font-mono text-[0.75rem] text-accent-600 underline-offset-2 hover:underline"
                   >
                     {finding.clauseId}
                   </Link>
-                  <Chip
-                    tone={
+                  <span
+                    className={cn(
+                      "text-[0.6875rem] font-medium",
                       finding.outcome === "breach"
-                        ? "danger"
+                        ? "text-escalate-700"
                         : open
-                          ? "warn"
-                          : "good"
-                    }
+                          ? "text-flag-700"
+                          : "text-ink-500",
+                    )}
                   >
                     {finding.outcome === "breach"
                       ? t("common.breach")
                       : open
                         ? t("common.attention")
                         : t("common.satisfied")}
-                  </Chip>
+                  </span>
                 </div>
-                <p className="mt-1.5 text-[0.8125rem] leading-relaxed text-mist-200">
+                <p className="mt-1 text-[0.8125rem] leading-relaxed text-ink-800">
                   {L(finding.detail, finding.detailAr)}
                 </p>
                 {finding.figures.length > 0 ? (
-                  <div className="mt-2 flex flex-wrap gap-1.5">
+                  <dl className="mt-2 flex flex-wrap gap-x-5 gap-y-1">
                     {finding.figures.map((figure) => (
-                      <span
-                        key={figure.label}
-                        className="inline-flex items-center gap-1.5 rounded border border-white/8 bg-white/4 px-1.5 py-0.5 text-[0.6875rem]"
-                      >
-                        <span className="text-mist-500">{L(figure.label, figure.labelAr)}</span>
-                        <span className="numeric text-mist-100">{figure.value}</span>
-                      </span>
+                      <div key={figure.label} className="flex items-baseline gap-1.5">
+                        <dt className="text-[0.6875rem] text-ink-500">
+                          {L(figure.label, figure.labelAr)}
+                        </dt>
+                        <dd className="numeric text-[0.6875rem] font-medium text-ink-900">
+                          {figure.value}
+                        </dd>
+                      </div>
                     ))}
-                  </div>
+                  </dl>
                 ) : null}
-              </div>
+              </li>
             );
           })}
-        </div>
+        </ul>
       </Panel>
 
-      {/* Evidence checklist — every required item, with its state */}
+      {/* Evidence — every required item, with its state */}
       <Panel className="p-4">
         <SectionHeading
           title={t("case.evidenceUsed")}
@@ -306,41 +257,34 @@ export function AssessmentColumn({ record }: { record: CaseRecord }) {
             required: analysis.evidence.requiredCount,
           })}
         />
-        <div className="mt-3">
-          <Meter
-            value={analysis.evidence.completeness}
-            tone={analysis.evidence.missing.length === 0 ? "good" : "warn"}
-          />
-        </div>
         <ul className="mt-3 space-y-1.5">
           {analysis.evidence.required.map((kind) => {
             const item = transaction.evidence.find((e) => e.kind === kind);
             const state = item?.state ?? "missing";
-            const Icon =
-              state === "present"
-                ? CheckCircle2
-                : state === "self_reported"
-                  ? CircleDashed
-                  : AlertCircle;
             return (
-              <li key={kind} className="flex items-start gap-2 text-[0.8125rem]">
-                <Icon
+              <li key={kind} className="flex items-baseline gap-2 text-[0.8125rem]">
+                <span
                   className={cn(
-                    "mt-0.5 h-3.5 w-3.5 shrink-0",
+                    "w-3 shrink-0 text-[0.75rem]",
                     state === "present"
-                      ? "text-pass-400"
+                      ? "text-pass-600"
                       : state === "self_reported"
-                        ? "text-flag-400"
-                        : "text-escalate-400",
+                        ? "text-flag-600"
+                        : "text-escalate-600",
                   )}
-                />
-                <span className="min-w-0 flex-1">
-                  <span className="text-mist-200">
-                    {item ? L(item.label, item.labelAr) : evidenceLabel(kind, locale)}
-                  </span>
+                >
+                  {state === "present" ? "✓" : state === "self_reported" ? "~" : "✕"}
+                </span>
+                <span className="min-w-0 flex-1 text-ink-800">
+                  {item ? L(item.label, item.labelAr) : evidenceLabel(kind, locale)}
                   {state === "self_reported" ? (
-                    <span className="ms-2 rounded border border-flag-500/25 bg-flag-500/10 px-1.5 py-0.5 text-[0.625rem] text-flag-400">
+                    <span className="ms-2 text-[0.6875rem] text-flag-700">
                       {t("case.selfReported")}
+                    </span>
+                  ) : null}
+                  {state === "missing" ? (
+                    <span className="ms-2 text-[0.6875rem] text-escalate-700">
+                      {t("case.evidenceMissing")}
                     </span>
                   ) : null}
                 </span>
@@ -348,105 +292,54 @@ export function AssessmentColumn({ record }: { record: CaseRecord }) {
             );
           })}
         </ul>
-
-        {/* The gaps, called out separately so they are impossible to miss */}
-        <div className="mt-3 rounded-lg border border-white/8 bg-ink-900/60 px-3 py-2.5">
-          <p className="text-[0.625rem] uppercase tracking-wide text-mist-500">
-            {t("case.evidenceMissing")}
-          </p>
-          {analysis.evidence.missing.length === 0 ? (
-            <p className="mt-1 text-[0.8125rem] text-pass-400">{t("case.evidenceComplete")}</p>
-          ) : (
-            <ul className="mt-1.5 space-y-1">
-              {analysis.evidence.missing.map((kind) => {
-                const item = transaction.evidence.find((e) => e.kind === kind);
-                return (
-                  <li key={kind} className="flex gap-2 text-[0.8125rem] text-mist-200">
-                    <span className="text-escalate-400">•</span>
-                    {item ? L(item.label, item.labelAr) : evidenceLabel(kind, locale)}
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </div>
       </Panel>
 
-      {/* Related transactions */}
       {transaction.related.length > 0 ? (
         <Panel className="p-4">
           <SectionHeading title={t("case.relatedTransactions")} />
-          <div className="mt-3 space-y-2">
+          <ul className="mt-2 divide-y divide-[--hairline]">
             {transaction.related.map((link) => (
-              <Link
-                key={link.transactionId}
-                href={`/transactions/${link.transactionId}`}
-                className="flex items-start gap-2.5 rounded-lg border border-white/8 bg-white/3 px-3 py-2.5 transition-colors hover:border-white/18 hover:bg-white/6"
-              >
-                <GitCompareArrows className="mt-0.5 h-3.5 w-3.5 shrink-0 text-info-400" />
-                <span className="min-w-0 flex-1">
-                  <span className="numeric block font-mono text-[0.75rem] text-info-400">
+              <li key={link.transactionId} className="py-2">
+                <Link href={`/transactions/${link.transactionId}`} className="group block">
+                  <span className="numeric font-mono text-[0.75rem] text-accent-600 group-hover:underline">
                     {link.transactionId}
                   </span>
-                  <span className="mt-0.5 block text-[0.75rem] leading-relaxed text-mist-300">
+                  <span className="mt-0.5 block text-[0.75rem] leading-relaxed text-ink-700">
                     {L(link.reason, link.reasonAr)}
                   </span>
-                </span>
-              </Link>
+                </Link>
+              </li>
             ))}
-          </div>
+          </ul>
         </Panel>
       ) : null}
 
-      {/* Budget impact */}
       <Panel className="p-4">
         <SectionHeading
           title={t("case.budgetImpact")}
           hint={L(record.department.name, record.department.nameAr)}
         />
-        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <dl className="mt-3 flex flex-wrap gap-x-6 gap-y-2">
           <Figure label={t("common.spent")} value={money(budget.spentAed)} />
           <Figure label={t("common.committed")} value={money(budget.committedAed)} />
           <Figure label={t("common.budget")} value={money(budget.monthlyBudgetAed)} />
           <Figure
             label={t("common.variance")}
             value={`${budget.forecastVarianceAed >= 0 ? "+" : ""}${money(budget.forecastVarianceAed)}`}
-            tone={budget.wouldExceedBudget ? "danger" : "good"}
+            tone={budget.wouldExceedBudget ? "danger" : "neutral"}
           />
-        </div>
+        </dl>
         <div className="mt-3">
           <Meter
             value={budget.forecastAed / budget.monthlyBudgetAed}
             tone={budget.wouldExceedBudget ? "danger" : "accent"}
           />
-          <p className="mt-2 text-[0.75rem] leading-relaxed text-mist-400">
-            {t("common.forecast")} {money(budget.forecastAed)} ({formatPercent(
-              budget.forecastAed / budget.monthlyBudgetAed,
-              locale,
-            )}
-            ) — {budget.wouldExceedBudget ? t("overview.forecastOver") : t("overview.forecastUnder")}
+          <p className="mt-2 text-[0.75rem] leading-relaxed text-ink-600">
+            {t("common.forecast")} {money(budget.forecastAed)} (
+            {formatPercent(budget.forecastAed / budget.monthlyBudgetAed, locale)}) —{" "}
+            {budget.wouldExceedBudget ? t("overview.forecastOver") : t("overview.forecastUnder")}
           </p>
         </div>
-      </Panel>
-
-      {/* Context timeline */}
-      <Panel className="p-4">
-        <SectionHeading title={t("case.timeline")} />
-        <ol className="mt-3 space-y-3">
-          {buildTimeline(record).map((entry, index) => (
-            <li key={index} className="relative flex gap-3 ps-1">
-              <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-accent-400" />
-              <div className="min-w-0 flex-1 pb-0.5">
-                <p className="text-[0.8125rem] leading-snug text-mist-200">
-                  {L(entry.label, entry.labelAr)}
-                </p>
-                <p className="numeric mt-0.5 text-[0.6875rem] text-mist-500">
-                  {formatDateTime(entry.at, locale)}
-                </p>
-              </div>
-            </li>
-          ))}
-        </ol>
       </Panel>
     </div>
   );
@@ -459,17 +352,17 @@ function Indicator({
 }: {
   label: string;
   value: string;
-  tone: "good" | "warn" | "danger";
+  tone: "neutral" | "warn" | "danger";
 }) {
   return (
-    <div className="rounded-lg border border-white/8 bg-ink-900/50 px-2.5 py-2">
-      <p className="text-[0.625rem] uppercase leading-tight tracking-wide text-mist-500">{label}</p>
+    <div className="px-4 py-2.5">
+      <p className="label">{label}</p>
       <p
         className={cn(
           "mt-1 text-[0.8125rem] font-medium",
-          tone === "good" && "text-pass-400",
-          tone === "warn" && "text-flag-400",
-          tone === "danger" && "text-escalate-400",
+          tone === "neutral" && "text-ink-900",
+          tone === "warn" && "text-flag-700",
+          tone === "danger" && "text-escalate-700",
         )}
       >
         {value}
@@ -485,74 +378,19 @@ function Figure({
 }: {
   label: string;
   value: string;
-  tone?: "neutral" | "good" | "danger";
+  tone?: "neutral" | "danger";
 }) {
   return (
     <div>
-      <p className="text-[0.625rem] uppercase tracking-wide text-mist-500">{label}</p>
-      <p
+      <dt className="label">{label}</dt>
+      <dd
         className={cn(
-          "numeric mt-1 text-[0.875rem] font-medium",
-          tone === "neutral" && "text-mist-100",
-          tone === "good" && "text-pass-400",
-          tone === "danger" && "text-escalate-400",
+          "numeric mt-0.5 text-[0.8125rem] font-medium",
+          tone === "neutral" ? "text-ink-900" : "text-escalate-700",
         )}
       >
         {value}
-      </p>
+      </dd>
     </div>
   );
-}
-
-interface TimelineEntry {
-  at: string;
-  label: string;
-  labelAr: string;
-}
-
-/** Assembles the case history from the records already attached to it. */
-function buildTimeline(record: CaseRecord): TimelineEntry[] {
-  const { transaction, analysis } = record;
-  const entries: TimelineEntry[] = [];
-
-  if (transaction.approval) {
-    entries.push({
-      at: transaction.approval.approvedAt,
-      label: `${transaction.approval.scope} — ${transaction.approval.approver}`,
-      labelAr: `${transaction.approval.scopeAr} — ${transaction.approval.approver}`,
-    });
-  }
-
-  entries.push({
-    at: transaction.occurredAt,
-    label: `Transaction settled at ${transaction.merchant}`,
-    labelAr: `تمت تسوية المعاملة لدى ${transaction.merchantAr}`,
-  });
-
-  if (transaction.receipt) {
-    entries.push({
-      at: transaction.receipt.uploadedAt,
-      label: `Receipt ${transaction.receipt.reference} uploaded`,
-      labelAr: `تم رفع الإيصال ${transaction.receipt.reference}`,
-    });
-  }
-
-  const engineAt = new Date(Date.parse(transaction.occurredAt) + 4 * 60_000).toISOString();
-  entries.push({
-    at: engineAt,
-    label: `Policy engine evaluated ${analysis.findings.length} clauses — verdict ${analysis.verdict}`,
-    labelAr: `قيَّم محرك السياسات ${analysis.findings.length} بنداً — الحكم ${analysis.verdict}`,
-  });
-
-  if (record.decision) {
-    entries.push({
-      at: record.decision.decidedAt,
-      label: `${record.decision.reviewer} recorded a decision`,
-      labelAr: `سجّل ${record.decision.reviewer} قراراً`,
-    });
-  }
-
-  // Timestamps mix Gulf offsets with UTC, so compare parsed instants — a
-  // lexical compare would put 14:46Z before 18:42+04:00.
-  return entries.sort((a, b) => Date.parse(a.at) - Date.parse(b.at));
 }

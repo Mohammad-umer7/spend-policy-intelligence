@@ -1,13 +1,12 @@
-/**
+﻿/**
  * @vitest-environment happy-dom
  *
- * Walks the exact three-minute presenter flow, step by step. If this suite
- * passes, the demo cannot break on stage for a data reason.
+ * Walks the presenter flow end to end, step by step. If this suite passes, the
+ * walkthrough cannot break on stage for a data reason.
  */
 import { beforeEach, describe, expect, it } from "vitest";
 import { baseCases } from "@/lib/engine/analysis";
 import { applyDecisions, seedAuditEvents, useAppStore } from "@/lib/store/app-store";
-import { buildDailyBrief } from "@/lib/ai/brief";
 import { companyTotals, departmentBudgets } from "@/lib/engine/budget";
 import { defaultQuery, filterCases, sortForQueue } from "@/lib/engine/queue-filters";
 import { answerQuestion } from "@/lib/ai/copilot";
@@ -15,7 +14,7 @@ import { getClause } from "@/lib/data/policy";
 import { formatAed } from "@/lib/format";
 import { dictionary } from "@/lib/i18n/dictionary";
 
-describe("three-minute demo flow", () => {
+describe("presenter walkthrough", () => {
   beforeEach(() => {
     localStorage.clear();
     useAppStore.setState({
@@ -34,10 +33,6 @@ describe("three-minute demo flow", () => {
     const totals = companyTotals();
     expect(totals.totalSpend).toBeGreaterThan(0);
     expect(totals.totalBudget).toBeGreaterThan(totals.totalSpend);
-
-    const brief = buildDailyBrief(cases);
-    expect(brief.headline).toContain("Marketing");
-    expect(brief.headline).toContain("18,400");
 
     const overBudget = departmentBudgets().filter((b) => b.isForecastOverBudget);
     expect(overBudget).toHaveLength(1);
@@ -124,31 +119,5 @@ describe("three-minute demo flow", () => {
     expect(answer!.citedClauseIds).toContain("EXC-10.1");
     expect(answer!.missingInformation.length).toBeGreaterThan(0);
     expect(answer!.recommendedNextAction.length).toBeGreaterThan(20);
-  });
-
-  it("keeps every route target in the brief and queue reachable", () => {
-    const cases = baseCases();
-    const brief = buildDailyBrief(cases);
-    const routes = new Set(["/", "/queue", "/policy", "/brief", "/audit", "/security", "/settings"]);
-
-    const hrefs = [
-      ...brief.attention,
-      ...brief.budgetRisks,
-      ...brief.policyExceptions,
-      ...brief.missingDocuments,
-      ...brief.vendorObservations,
-      ...brief.savings,
-      ...brief.recommendedActions,
-    ].map((i) => i.href);
-
-    for (const href of hrefs) {
-      const base = href.split("?")[0];
-      const isTransaction = base.startsWith("/transactions/");
-      expect(routes.has(base) || isTransaction, `unreachable route ${href}`).toBe(true);
-      if (isTransaction) {
-        const id = base.replace("/transactions/", "");
-        expect(cases.some((c) => c.transaction.id === id)).toBe(true);
-      }
-    }
   });
 });

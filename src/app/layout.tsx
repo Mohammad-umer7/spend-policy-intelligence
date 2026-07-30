@@ -10,11 +10,11 @@ const notoKufi = Noto_Kufi_Arabic({ variable: "--font-noto-kufi", subsets: ["ara
 export const metadata: Metadata = {
   title: "Spend Policy Intelligence — AI-assisted. Human-reviewed.",
   description:
-    "A policy intelligence layer for spend-management platforms. Every verdict is produced by a deterministic policy engine and reviewed by a human. Demo environment, synthetic data only.",
+    "A policy intelligence layer for spend-management platforms. Every verdict is produced by a deterministic policy engine and reviewed by a human.",
 };
 
 export const viewport: Viewport = {
-  themeColor: "#05070f",
+  themeColor: "#ffffff",
   width: "device-width",
   initialScale: 1,
 };

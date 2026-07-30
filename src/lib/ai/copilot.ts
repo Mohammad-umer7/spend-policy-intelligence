@@ -1,4 +1,4 @@
-import type { CaseRecord, CopilotAnswer, Locale, RuleFigure } from "../types";
+﻿import type { CaseRecord, CopilotAnswer, Locale, RuleFigure } from "../types";
 import { formatAed, formatPercent } from "../format";
 import { companyTotals, departmentBudgets } from "../engine/budget";
 import { evidenceLabel } from "../engine/evidence";
@@ -119,7 +119,7 @@ const whyEscalated: Handler = (ctx) => {
   const record =
     focus && focus.analysis.verdict === "escalate"
       ? focus
-      : ctx.cases.find((c) => c.transaction.demoCase === "hotel_above_band");
+      : ctx.cases.find((c) => c.transaction.scriptedCase === "hotel_above_band");
 
   if (!record) return unknownAnswer();
 
@@ -392,7 +392,7 @@ const evidenceGap: Handler = (ctx) => {
 };
 
 const approvalBudgetImpact: Handler = (ctx) => {
-  const record = focusCase(ctx) ?? ctx.cases.find((c) => c.transaction.demoCase === "hotel_above_band");
+  const record = focusCase(ctx) ?? ctx.cases.find((c) => c.transaction.scriptedCase === "hotel_above_band");
   if (!record) return unknownAnswer();
 
   const { transaction, department, employee, analysis } = record;

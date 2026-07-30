@@ -2,17 +2,13 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { Bell, Building2, Languages, Menu, MessageSquareText, Search } from "lucide-react";
-import { AnimatePresence, motion } from "framer-motion";
-import { cn } from "@/lib/cn";
+import { Menu, Search } from "lucide-react";
 import { company, currentReviewer } from "@/lib/data/company";
 import { policy } from "@/lib/data/policy";
 import { formatAed } from "@/lib/format";
 import { useAppStore } from "@/lib/store/app-store";
 import { useCases, useLocale, useLocalised, useT } from "@/lib/store/hooks";
-import { Button, Chip } from "@/components/ui/primitives";
-import { NotificationsPopover } from "./notifications";
+import { Button } from "@/components/ui/primitives";
 
 interface SearchHit {
   href: string;
@@ -32,7 +28,6 @@ export function Topbar({ onOpenMobileNav }: { onOpenMobileNav: () => void }) {
 
   const [query, setQuery] = useState("");
   const [focused, setFocused] = useState(false);
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
 
   const hits = useMemo<SearchHit[]>(() => {
     const q = query.trim().toLowerCase();
@@ -84,19 +79,18 @@ export function Topbar({ onOpenMobileNav }: { onOpenMobileNav: () => void }) {
   );
 
   return (
-    <header className="sticky top-0 z-30 border-b border-white/8 bg-ink-950/80 backdrop-blur-xl">
-      <div className="flex h-14 items-center gap-3 px-3 sm:px-4 lg:px-6">
+    <header className="sticky top-0 z-30 border-b border-[--hairline] bg-white">
+      <div className="flex h-12 items-center gap-3 px-4 lg:px-7">
         <button
           onClick={onOpenMobileNav}
           aria-label={t("nav.menu")}
-          className="rounded-lg p-2 text-mist-300 transition-colors hover:bg-white/6 hover:text-mist-50 lg:hidden"
+          className="rounded-[0.1875rem] p-1.5 text-ink-600 transition-colors hover:bg-ink-100 lg:hidden"
         >
-          <Menu className="h-4.5 w-4.5" />
+          <Menu className="h-4 w-4" />
         </button>
 
-        {/* Global search */}
-        <div className="relative min-w-0 flex-1 max-w-xl">
-          <Search className="pointer-events-none absolute start-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-mist-500" />
+        <div className="relative min-w-0 flex-1 max-w-md">
+          <Search className="pointer-events-none absolute start-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ink-400" />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -111,120 +105,63 @@ export function Topbar({ onOpenMobileNav }: { onOpenMobileNav: () => void }) {
             }}
             placeholder={t("top.search")}
             aria-label={t("top.search")}
-            className="h-9 w-full rounded-lg border border-white/10 bg-white/4 ps-9 pe-3 text-[0.8125rem] text-mist-100 placeholder:text-mist-500 transition-colors focus:border-white/20 focus:bg-white/6 focus:outline-none"
+            className="h-8 w-full rounded-[0.1875rem] border border-[--hairline] bg-ink-50 ps-8 pe-3 text-[0.8125rem] text-ink-900 placeholder:text-ink-400 focus:border-[--hairline-strong] focus:bg-white focus:outline-none"
           />
-          <AnimatePresence>
-            {focused && query.trim().length >= 2 ? (
-              <motion.div
-                initial={{ opacity: 0, y: -4 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -4 }}
-                transition={{ duration: 0.14 }}
-                className="panel-raised absolute inset-x-0 top-11 z-40 max-h-80 overflow-y-auto py-1.5 shadow-2xl"
-              >
-                {hits.length === 0 ? (
-                  <p className="px-3 py-3 text-xs text-mist-500">{t("top.noResults")}</p>
-                ) : (
-                  hits.map((hit) => (
-                    <button
-                      key={hit.href + hit.title}
-                      onMouseDown={(e) => e.preventDefault()}
-                      onClick={() => go(hit.href)}
-                      className="flex w-full items-start gap-3 px-3 py-2 text-start transition-colors hover:bg-white/6"
-                    >
-                      <span className="mt-0.5 shrink-0 rounded border border-white/10 bg-white/4 px-1.5 py-0.5 text-[0.625rem] text-mist-400">
-                        {hit.kind}
+          {focused && query.trim().length >= 2 ? (
+            <div className="absolute inset-x-0 top-9 z-40 max-h-80 overflow-y-auto rounded-[0.1875rem] border border-[--hairline-strong] bg-white py-1 shadow-lg">
+              {hits.length === 0 ? (
+                <p className="px-3 py-2.5 text-xs text-ink-500">{t("top.noResults")}</p>
+              ) : (
+                hits.map((hit) => (
+                  <button
+                    key={hit.href + hit.title}
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => go(hit.href)}
+                    className="flex w-full items-start gap-2.5 px-3 py-1.5 text-start transition-colors hover:bg-ink-50"
+                  >
+                    <span className="label mt-0.5 shrink-0">{hit.kind}</span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[0.8125rem] text-ink-900">
+                        {hit.title}
                       </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate text-[0.8125rem] text-mist-100">
-                          {hit.title}
-                        </span>
-                        <span className="block truncate text-[0.6875rem] text-mist-500">
-                          {hit.subtitle}
-                        </span>
+                      <span className="block truncate text-[0.6875rem] text-ink-500">
+                        {hit.subtitle}
                       </span>
-                    </button>
-                  ))
-                )}
-              </motion.div>
-            ) : null}
-          </AnimatePresence>
+                    </span>
+                  </button>
+                ))
+              )}
+            </div>
+          ) : null}
         </div>
 
-        <div className="ms-auto flex items-center gap-1.5 sm:gap-2">
-          <Chip tone="warn" className="hidden xl:inline-flex">
-            {t("app.demoBadge")}
-          </Chip>
-          <Chip tone="warn" className="hidden sm:inline-flex xl:hidden">
-            {t("app.demoBadgeShort")}
-          </Chip>
+        <div className="ms-auto flex items-center gap-4">
+          <span className="hidden max-w-[16rem] truncate text-[0.75rem] text-ink-600 md:block">
+            {L(company.name, company.nameAr)}
+          </span>
 
-          {/* Company selector — single tenant in this demo, shown for completeness */}
-          <div className="hidden items-center gap-2 rounded-lg border border-white/10 bg-white/4 px-2.5 py-1.5 md:flex">
-            <Building2 className="h-3.5 w-3.5 shrink-0 text-mist-500" />
-            <span className="max-w-[13rem] truncate text-[0.75rem] text-mist-200">
-              {L(company.name, company.nameAr)}
-            </span>
-          </div>
-
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => setCopilotOpen(true)}
-            className="gap-1.5"
-          >
-            <MessageSquareText className="h-3.5 w-3.5" />
-            <span className="hidden lg:inline">{t("top.copilot")}</span>
-          </Button>
-
-          <button
-            onClick={toggleLocale}
-            aria-label={t("top.language")}
-            title={t("top.language")}
-            className="flex h-9 items-center gap-1.5 rounded-lg border border-white/10 bg-white/4 px-2.5 text-[0.75rem] font-medium text-mist-200 transition-colors hover:border-white/20 hover:bg-white/8"
-          >
-            <Languages className="h-3.5 w-3.5" />
-            {t("top.language")}
-          </button>
-
-          <div className="relative">
+          <div className="flex items-center gap-1.5">
+            <Button variant="secondary" size="sm" onClick={() => setCopilotOpen(true)}>
+              {t("top.copilot")}
+            </Button>
             <button
-              onClick={() => setNotificationsOpen((v) => !v)}
-              aria-label={t("top.notifications")}
-              className="relative grid h-9 w-9 place-items-center rounded-lg border border-white/10 bg-white/4 text-mist-300 transition-colors hover:border-white/20 hover:bg-white/8 hover:text-mist-50"
+              onClick={toggleLocale}
+              aria-label={t("top.language")}
+              className="h-7 rounded-[0.1875rem] px-2 text-[0.75rem] font-medium text-ink-600 transition-colors hover:bg-ink-100 hover:text-ink-900"
             >
-              <Bell className="h-4 w-4" />
-              <span className="absolute end-2 top-2 h-1.5 w-1.5 rounded-full bg-escalate-500" />
+              {t("top.language")}
             </button>
-            <NotificationsPopover
-              open={notificationsOpen}
-              onClose={() => setNotificationsOpen(false)}
-            />
           </div>
 
-          <Link
-            href="/settings"
-            className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/4 px-1.5 py-1.5 transition-colors hover:border-white/20 hover:bg-white/8"
-            title={`${currentReviewer.name} · ${currentReviewer.role}`}
-          >
-            <span className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-gradient-to-br from-accent-500 to-info-500 text-[0.625rem] font-bold text-white">
-              {currentReviewer.initials}
+          <span className="hidden border-s border-[--hairline] ps-4 lg:block">
+            <span className="block text-[0.75rem] leading-tight text-ink-900">
+              {L(currentReviewer.name, currentReviewer.nameAr)}
             </span>
-            <span className="hidden min-w-0 pe-1 lg:block">
-              <span className="block truncate text-[0.75rem] leading-tight text-mist-100">
-                {L(currentReviewer.name, currentReviewer.nameAr)}
-              </span>
-              <span className="block truncate text-[0.625rem] leading-tight text-mist-500">
-                {L(currentReviewer.role, currentReviewer.roleAr)}
-              </span>
+            <span className="block text-[0.6875rem] leading-tight text-ink-500">
+              {L(currentReviewer.role, currentReviewer.roleAr)}
             </span>
-          </Link>
+          </span>
         </div>
-      </div>
-
-      {/* Persistent synthetic-data notice for the narrow breakpoints */}
-      <div className={cn("hairline-t px-4 py-1.5 sm:hidden")}>
-        <p className="text-center text-[0.625rem] text-flag-400">{t("app.demoBadge")}</p>
       </div>
     </header>
   );

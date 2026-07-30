@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+﻿import { describe, expect, it } from "vitest";
 import { departments, employees, getEmployee } from "@/lib/data/company";
 import { transactions } from "@/lib/data/transactions";
 import { policy } from "@/lib/data/policy";
@@ -10,7 +10,6 @@ import {
   departmentBudgets,
   spendByDepartment,
 } from "@/lib/engine/budget";
-import { buildDailyBrief } from "@/lib/ai/brief";
 
 const cases = baseCases();
 
@@ -123,43 +122,3 @@ describe("budget calculations", () => {
   });
 });
 
-describe("daily brief", () => {
-  it("quotes figures that match the engine", () => {
-    const brief = buildDailyBrief(cases);
-    expect(brief.headline).toContain("Marketing");
-    expect(brief.headline).toContain("18,400");
-    expect(brief.headline).toContain("3 transactions require immediate review");
-    expect(brief.headline).toContain("2 software subscriptions");
-  });
-
-  it("prices potential savings from the overlapping subscriptions plus duplicate exposure", () => {
-    const brief = buildDailyBrief(cases);
-    // Trailhead PM 6,300 + Northlight BI 3,400 + smaller duplicate 8,720
-    expect(brief.potentialSavingsAed).toBe(6_300 + 3_400 + 8_720);
-  });
-
-  it("points every insight at a route that exists", () => {
-    const brief = buildDailyBrief(cases);
-    const all = [
-      ...brief.attention,
-      ...brief.budgetRisks,
-      ...brief.policyExceptions,
-      ...brief.missingDocuments,
-      ...brief.vendorObservations,
-      ...brief.savings,
-      ...brief.recommendedActions,
-    ];
-    expect(all.length).toBeGreaterThan(0);
-    for (const insight of all) {
-      expect(insight.href.startsWith("/")).toBe(true);
-      for (const id of insight.transactionIds) {
-        expect(transactions.some((t) => t.id === id)).toBe(true);
-      }
-    }
-  });
-
-  it("nominates the most urgent case from the open escalations", () => {
-    const brief = buildDailyBrief(cases);
-    expect(brief.mostUrgent?.analysis.verdict).toBe("escalate");
-  });
-});

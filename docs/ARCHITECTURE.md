@@ -30,31 +30,32 @@ The narrative layer is downstream of the findings and cannot feed back into them
 **Next.js 16, App Router.** Three things drove the choice:
 
 1. **A server boundary.** `ANTHROPIC_API_KEY` is read only inside `src/app/api/explain/route.ts`. It cannot reach the browser bundle.
-2. **Static prerendering.** `generateStaticParams` prerenders all 47 case pages, so navigating between cases in a live demo is instant.
+2. **Static prerendering.** `generateStaticParams` prerenders all 47 case pages, so navigating between cases is instant.
 3. **Route-level error boundaries.** `app/error.tsx` catches a render failure without taking down the shell.
 
 Most of the app is client-rendered because the reviewer state is client state. The pages that read `useSearchParams` (`/queue`, `/policy`, `/audit`) wrap their client component in `<Suspense>` so prerendering succeeds.
 
 ### Layout
 
-`AppShell` owns the chrome: collapsible sidebar (a drawer under `lg`), top bar with global search, company selector, demo badge, language toggle, notifications and profile. Routes render inside it, so navigation never re-mounts the copilot or loses a toast.
+`AppShell` owns the chrome: a fixed sidebar (a drawer under `lg`) and a top bar with global search, the company name, the language toggle and the signed-in reviewer. Routes render inside it, so navigation never re-mounts the copilot or loses a toast.
 
 ### Styling
 
-Tailwind v4, with the design tokens declared in `@theme` in `globals.css`. Two deliberate rules:
+Tailwind v4, with the design tokens declared in `@theme` in `globals.css`. Three deliberate rules:
 
-- **Glass is for chrome and summaries only.** Tables, policy text, receipts and explanations sit on solid panels (`.panel`) so they stay legible on a projector. The `Panel` primitive takes a `variant` precisely so this stays a decision rather than a habit.
+- **Hairlines, not cards.** Separation comes from 1px rules and whitespace. No shadows, no blur, no gradients — they read as decoration on a projector and add nothing a reviewer can use.
+- **Colour carries meaning only.** The three status hues are reserved for verdicts, and always ship with a text label, so nothing depends on hue alone.
 - **Logical properties everywhere** (`ps-`, `pe-`, `start-`, `end-`, `border-s`). RTL is then a `dir` attribute, not a second stylesheet.
 
-The receipt preview inverts to a light surface on purpose — it should read as paper.
+Every figure is tabular (`font-variant-numeric: tabular-nums`) so columns align down the page.
 
 ---
 
 ## State management
 
-A single Zustand store (`src/lib/store/app-store.ts`) holding: locale, reviewer decisions, human audit events, precedent approvals, sidebar state, copilot messages and toasts.
+A single Zustand store (`src/lib/store/app-store.ts`) holding: locale, reviewer decisions, human audit events, copilot messages and toasts.
 
-**The synthetic ledger is never mutated.** `baseCases()` builds the case set once and memoises it; `applyDecisions()` layers human decisions on top to produce the view the UI renders. A reviewer decision is an *overlay*, which is why "reset demo data" is a single state clear and why `baseCases()` is safe to call from anywhere.
+**The base ledger is never mutated.** `baseCases()` builds the case set once and memoises it; `applyDecisions()` layers human decisions on top to produce the view the UI renders. A reviewer decision is an *overlay*, which is why "reset data" is a single state clear and why `baseCases()` is safe to call from anywhere.
 
 ### Hydration
 
@@ -108,7 +109,7 @@ Risk is a function of verdict, evidence completeness, amount and finding count �
 
 ### Budget
 
-Every figure is derived from the ledger by `spendByDepartment()` / `departmentBudgets()`. Forecast is settled spend plus committed spend, which avoids any dependence on "today" — a date-extrapolated forecast would drift and break the demo's determinism.
+Every figure is derived from the ledger by `spendByDepartment()` / `departmentBudgets()`. Forecast is settled spend plus committed spend, which avoids any dependence on "today" — a date-extrapolated forecast would drift and break the determinism the tests rely on.
 
 ---
 
@@ -157,7 +158,7 @@ Two kinds of event, one shape:
 
 The `source` discriminator (`deterministic_rule` | `ai_reasoning` | `human_reviewer`) is what lets the trail answer "who decided this". The rule event carries a `ruleReference` and no model prose; the AI event carries prose and no rule reference. A test asserts that.
 
-In production the human events would be an append-only server-side log. Here they are in `localStorage` under a versioned key, so a schema change cannot corrupt an existing demo.
+In production the human events would be an append-only server-side log. Here they are in `localStorage` under a versioned key, so a schema change cannot corrupt existing state.
 
 ---
 
@@ -185,7 +186,7 @@ Where residency requires it, the narrative layer is the only component that need
 
 ## Testing
 
-93 tests, structured around the risk rather than around the file tree.
+88 tests, structured around the risk rather than around the file tree.
 
 | Suite | Guards against |
 |---|---|
@@ -195,7 +196,7 @@ Where residency requires it, the narrative layer is the only component that need
 | `review-flow` | Status transitions, note requirements, audit-event shape, and that the base ledger is never mutated. |
 | `ai-layer` | The narrative layer overstepping. Asserts no accusatory vocabulary on the sensitive cases, that every reviewable case defers to a human, that no answer claims an action was taken, and that the Claude schema has no verdict field. |
 | `persistence` | Refresh losing a decision, or corrupt storage throwing. |
-| `demo-flow` | The presentation. Walks all fifteen steps of the script. |
+| `presenter-flow` | The presentation. Walks all fifteen steps of the script. |
 
 ---
 
@@ -205,6 +206,6 @@ Where residency requires it, the narrative layer is the only component that need
 
 **Container** — `output: "standalone"` in `next.config.ts` produces a self-contained server for any Node runtime. Suitable for a client VPC.
 
-**Static** — with the API route removed, the whole app exports statically; the mock provider needs no server at all. This is the lowest-friction way to hand a prospect a running demo.
+**Static** — with the API route removed, the whole app exports statically; the mock provider needs no server at all. This is the lowest-friction way to hand a prospect a running build.
 
 For a real deployment the additions are: a database for decisions and audit events, an identity provider, per-tenant policy storage, and a model-call log with retention controls.

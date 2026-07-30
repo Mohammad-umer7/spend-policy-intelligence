@@ -3,14 +3,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { ArrowUp, Loader2, Sparkles } from "lucide-react";
-import { motion } from "framer-motion";
+import { ArrowUp } from "lucide-react";
 import { answerQuestion, localiseAnswer, suggestedQuestions } from "@/lib/ai/copilot";
 import type { CopilotMessage } from "@/lib/types";
 import { useAppStore } from "@/lib/store/app-store";
 import { useCases, useLocale, useLocalised, useT } from "@/lib/store/hooks";
 import { Drawer } from "@/components/ui/overlays";
-import { Button, Chip } from "@/components/ui/primitives";
+import { Button } from "@/components/ui/primitives";
 
 let messageCounter = 0;
 function nextMessageId(): string {
@@ -59,7 +58,7 @@ export function CopilotDrawer() {
     setInput("");
     setThinking(true);
 
-    // A short delay makes the retrieval step legible in a live demo; the
+    // A short delay makes the retrieval step legible in a live walkthrough; the
     // answer itself is computed synchronously from the ledger.
     window.setTimeout(() => {
       const answer = answerQuestion(trimmed, { cases, focusTransactionId });
@@ -94,7 +93,7 @@ export function CopilotDrawer() {
             onChange={(e) => setInput(e.target.value)}
             placeholder={t("copilot.placeholder")}
             aria-label={t("copilot.placeholder")}
-            className="h-9 min-w-0 flex-1 rounded-lg border border-white/10 bg-white/4 px-3 text-[0.8125rem] text-mist-100 placeholder:text-mist-500 focus:border-white/20 focus:outline-none"
+            className="h-8 min-w-0 flex-1 rounded-[0.1875rem] border border-[--hairline] bg-white px-3 text-[0.8125rem] text-ink-900 placeholder:text-ink-400 focus:border-[--hairline-strong] focus:outline-none"
           />
           <Button type="submit" variant="primary" size="sm" disabled={!input.trim() || thinking}>
             <ArrowUp className="h-3.5 w-3.5" />
@@ -105,45 +104,33 @@ export function CopilotDrawer() {
     >
       <div ref={scrollRef} className="flex h-full flex-col gap-3 overflow-y-auto px-4 py-4">
         {messages.length === 0 ? (
-          <div className="rounded-lg border border-white/8 bg-white/3 p-3.5">
-            <div className="flex items-center gap-2 text-[0.8125rem] font-medium text-mist-100">
-              <Sparkles className="h-3.5 w-3.5 text-accent-400" />
-              {t("copilot.title")}
-            </div>
-            <p className="mt-2 text-xs leading-relaxed text-mist-400">{t("copilot.empty")}</p>
-          </div>
+          <p className="text-xs leading-relaxed text-ink-500">{t("copilot.empty")}</p>
         ) : null}
 
         {messages.map((message) =>
           message.role === "user" ? (
-            <div key={message.id} className="flex justify-end">
-              <p className="max-w-[85%] rounded-lg rounded-ee-sm bg-accent-600/22 px-3 py-2 text-[0.8125rem] leading-relaxed text-mist-50">
-                {message.text}
-              </p>
-            </div>
+            <p
+              key={message.id}
+              className="self-end max-w-[85%] rounded-[0.1875rem] bg-ink-100 px-3 py-2 text-[0.8125rem] leading-relaxed text-ink-900"
+            >
+              {message.text}
+            </p>
           ) : (
             <AnswerCard key={message.id} message={message} />
           ),
         )}
 
-        {thinking ? (
-          <div className="flex items-center gap-2 px-1 text-xs text-mist-400">
-            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            {t("copilot.thinking")}
-          </div>
-        ) : null}
+        {thinking ? <p className="text-xs text-ink-500">{t("copilot.thinking")}</p> : null}
 
-        <div className="mt-auto pt-2">
-          <p className="mb-2 text-[0.6875rem] uppercase tracking-wide text-mist-500">
-            {t("copilot.suggested")}
-          </p>
-          <div className="flex flex-wrap gap-1.5">
+        <div className="mt-auto pt-3">
+          <p className="label mb-2">{t("copilot.suggested")}</p>
+          <div className="flex flex-col items-start gap-1">
             {questions.map((q) => (
               <button
                 key={q.id}
                 onClick={() => ask(L(q.en, q.ar))}
                 disabled={thinking}
-                className="rounded-md border border-white/10 bg-white/4 px-2.5 py-1.5 text-start text-[0.6875rem] leading-snug text-mist-300 transition-colors hover:border-white/20 hover:bg-white/8 hover:text-mist-100 disabled:opacity-50"
+                className="text-start text-[0.75rem] leading-snug text-accent-600 underline-offset-2 hover:underline disabled:opacity-50"
               >
                 {L(q.en, q.ar)}
               </button>
@@ -152,7 +139,7 @@ export function CopilotDrawer() {
           {messages.length > 0 ? (
             <button
               onClick={clear}
-              className="mt-2.5 text-[0.6875rem] text-mist-500 underline-offset-2 hover:text-mist-300 hover:underline"
+              className="mt-3 text-[0.6875rem] text-ink-500 underline-offset-2 hover:text-ink-800 hover:underline"
             >
               {t("action.reset")}
             </button>
@@ -170,14 +157,9 @@ function AnswerCard({ message }: { message: CopilotMessage }) {
 
   if (!message.answer) {
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.2 }}
-        className="panel px-3.5 py-3"
-      >
-        <p className="text-[0.8125rem] leading-relaxed text-mist-200">{message.text}</p>
-      </motion.div>
+      <p className="panel px-3 py-2.5 text-[0.8125rem] leading-relaxed text-ink-800">
+        {message.text}
+      </p>
     );
   }
 
@@ -185,97 +167,68 @@ function AnswerCard({ message }: { message: CopilotMessage }) {
   const view = localiseAnswer(answer, locale);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-      className="panel overflow-hidden"
-    >
-      <div className="px-3.5 py-3">
-        <p className="whitespace-pre-wrap text-[0.8125rem] leading-relaxed text-mist-100">
-          {view.text}
-        </p>
-      </div>
+    <div className="panel overflow-hidden">
+      <p className="whitespace-pre-wrap px-3 py-2.5 text-[0.8125rem] leading-relaxed text-ink-900">
+        {view.text}
+      </p>
 
       {answer.figures.length > 0 ? (
-        <div className="hairline-t px-3.5 py-2.5">
-          <p className="mb-1.5 text-[0.625rem] uppercase tracking-wide text-mist-500">
-            {t("copilot.figures")}
-          </p>
-          <div className="flex flex-wrap gap-1.5">
+        <div className="hairline-t px-3 py-2.5">
+          <p className="label mb-1.5">{t("copilot.figures")}</p>
+          <dl className="space-y-0.5">
             {answer.figures.map((f) => (
-              <Chip key={f.label} tone="neutral">
-                <span className="text-mist-500">{L(f.label, f.labelAr)}</span>
-                <span className="numeric text-mist-100">{f.value}</span>
-              </Chip>
+              <div key={f.label} className="flex items-baseline justify-between gap-4">
+                <dt className="text-[0.6875rem] text-ink-500">{L(f.label, f.labelAr)}</dt>
+                <dd className="numeric text-[0.75rem] font-medium text-ink-900">{f.value}</dd>
+              </div>
             ))}
-          </div>
+          </dl>
         </div>
       ) : null}
 
-      {answer.supportingTransactionIds.length > 0 ? (
-        <div className="hairline-t px-3.5 py-2.5">
-          <p className="mb-1.5 text-[0.625rem] uppercase tracking-wide text-mist-500">
-            {t("copilot.supporting")}
-          </p>
-          <div className="flex flex-wrap gap-1.5">
-            {[...new Set(answer.supportingTransactionIds)].map((id) => (
-              <Link
-                key={id}
-                href={`/transactions/${id}`}
-                className="numeric rounded-md border border-info-500/25 bg-info-500/10 px-2 py-1 font-mono text-[0.6875rem] text-info-400 transition-colors hover:bg-info-500/20"
-              >
-                {id}
-              </Link>
-            ))}
-          </div>
+      {answer.supportingTransactionIds.length > 0 || answer.citedClauseIds.length > 0 ? (
+        <div className="hairline-t flex flex-wrap gap-x-4 gap-y-1 px-3 py-2.5">
+          {[...new Set(answer.supportingTransactionIds)].map((id) => (
+            <Link
+              key={id}
+              href={`/transactions/${id}`}
+              className="numeric font-mono text-[0.6875rem] text-accent-600 hover:underline"
+            >
+              {id}
+            </Link>
+          ))}
+          {[...new Set(answer.citedClauseIds)].map((id) => (
+            <Link
+              key={id}
+              href={`/policy?clause=${id}`}
+              className="numeric font-mono text-[0.6875rem] text-ink-600 hover:underline"
+            >
+              {id}
+            </Link>
+          ))}
         </div>
       ) : null}
 
-      {answer.citedClauseIds.length > 0 ? (
-        <div className="hairline-t px-3.5 py-2.5">
-          <p className="mb-1.5 text-[0.625rem] uppercase tracking-wide text-mist-500">
-            {t("copilot.clauses")}
-          </p>
-          <div className="flex flex-wrap gap-1.5">
-            {[...new Set(answer.citedClauseIds)].map((id) => (
-              <Link
-                key={id}
-                href={`/policy?clause=${id}`}
-                className="rounded-md border border-white/10 bg-white/4 px-2 py-1 font-mono text-[0.6875rem] text-mist-300 transition-colors hover:border-white/20 hover:text-mist-100"
-              >
-                {id}
-              </Link>
-            ))}
-          </div>
-        </div>
-      ) : null}
-
-      <div className="hairline-t px-3.5 py-2.5">
-        <p className="mb-1 text-[0.625rem] uppercase tracking-wide text-mist-500">
-          {t("copilot.missing")}
-        </p>
+      <div className="hairline-t px-3 py-2.5">
+        <p className="label mb-1">{t("copilot.missing")}</p>
         {view.missing.length === 0 ? (
-          <p className="text-[0.75rem] text-mist-400">{t("copilot.noneMissing")}</p>
+          <p className="text-[0.75rem] text-ink-500">{t("copilot.noneMissing")}</p>
         ) : (
-          <ul className="space-y-1">
+          <ul className="space-y-0.5">
             {view.missing.map((item) => (
-              <li key={item} className="flex gap-2 text-[0.75rem] leading-relaxed text-mist-300">
-                <span className="text-flag-400">•</span>
-                {item}
+              <li key={item} className="text-[0.75rem] leading-relaxed text-ink-700">
+                — {item}
               </li>
             ))}
           </ul>
         )}
       </div>
 
-      <div className="hairline-t bg-white/2 px-3.5 py-2.5">
-        <p className="mb-1 text-[0.625rem] uppercase tracking-wide text-mist-500">
-          {t("copilot.nextAction")}
-        </p>
-        <p className="text-[0.75rem] leading-relaxed text-mist-200">{view.nextAction}</p>
-        <p className="mt-2 text-[0.625rem] text-flag-400">{t("copilot.draftNotice")}</p>
+      <div className="hairline-t bg-ink-50 px-3 py-2.5">
+        <p className="label mb-1">{t("copilot.nextAction")}</p>
+        <p className="text-[0.75rem] leading-relaxed text-ink-800">{view.nextAction}</p>
+        <p className="mt-2 text-[0.625rem] text-ink-500">{t("copilot.draftNotice")}</p>
       </div>
-    </motion.div>
+    </div>
   );
 }

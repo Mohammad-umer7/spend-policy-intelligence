@@ -1,7 +1,7 @@
-/**
+﻿/**
  * Core domain model for Spend Policy Intelligence.
  *
- * Every entity in the demo is synthetic. No real company, employee, card,
+ * Every entity in this dataset is fictional. No real company, employee, card,
  * merchant relationship or transaction is represented anywhere in this file.
  */
 
@@ -275,11 +275,11 @@ export interface Transaction {
   /** Vendor tool name, for software subscriptions. */
   softwareTool?: string;
   related: RelatedTransactionLink[];
-  /** Set only on the five scripted demo cases so the narrative is richer. */
-  demoCase?: DemoCaseId;
+  /** Set only on the five scripted cases so the narrative is richer. */
+  scriptedCase?: ScriptedCaseId;
 }
 
-export type DemoCaseId =
+export type ScriptedCaseId =
   | "hotel_above_band"
   | "possible_duplicate"
   | "weekend_team_meal"
@@ -457,6 +457,6 @@ export interface CaseRecord {
   analysis: AIAnalysis;
   status: ReviewStatus;
   decision: ReviewDecision | null;
-  /** Hours since the transaction was captured, at the fixed demo timestamp. */
+  /** Hours since the transaction was captured, at the fixed reference timestamp. */
   ageHours: number;
 }

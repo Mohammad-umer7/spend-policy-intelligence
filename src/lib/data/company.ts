@@ -1,4 +1,4 @@
-import type { Company, Department, Employee, EmployeeLevel, TravelBand } from "../types";
+﻿import type { Company, Department, Employee, EmployeeLevel, TravelBand } from "../types";
 
 /**
  * SYNTHETIC DATA — Northstar Hospitality Group LLC is a fictional company
@@ -291,7 +291,7 @@ export const employees: Employee[] = [
   },
 ];
 
-/** The signed-in persona for the demo. All human decisions are attributed here. */
+/** the signed-in persona. All human decisions are attributed here. */
 export const currentReviewer = {
   employeeId: "EMP-1015",
   name: "Mariam Al Falasi",

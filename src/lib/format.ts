@@ -1,12 +1,12 @@
-import type { Locale } from "./types";
+﻿import type { Locale } from "./types";
 
 /**
- * The demo runs against a fixed "now" so every derived figure — case age,
+ * The application runs against a fixed "now" so every derived figure — case age,
  * month-to-date spend, forecast — is deterministic across reloads, machines
  * and between server and client rendering.
  */
-export const DEMO_NOW = "2026-07-24T09:15:00+04:00";
-export const DEMO_NOW_MS = Date.parse(DEMO_NOW);
+export const REFERENCE_NOW = "2026-07-24T09:15:00+04:00";
+export const REFERENCE_NOW_MS = Date.parse(REFERENCE_NOW);
 
 /** All dates are presented in Gulf Standard Time to avoid hydration drift. */
 const TIME_ZONE = "Asia/Dubai";
@@ -102,9 +102,9 @@ export function formatWeekday(iso: string, locale: Locale = "en"): string {
   }).format(new Date(iso));
 }
 
-/** Whole hours between a transaction timestamp and the fixed demo "now". */
+/** Whole hours between a transaction timestamp and the fixed reference "now". */
 export function hoursSince(iso: string): number {
-  return Math.max(0, Math.round((DEMO_NOW_MS - Date.parse(iso)) / 3_600_000));
+  return Math.max(0, Math.round((REFERENCE_NOW_MS - Date.parse(iso)) / 3_600_000));
 }
 
 export function formatAge(hours: number, locale: Locale = "en"): string {

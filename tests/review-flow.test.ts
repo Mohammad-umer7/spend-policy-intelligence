@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @vitest-environment happy-dom
  */
 import { beforeEach, describe, expect, it } from "vitest";
@@ -218,7 +218,7 @@ describe("demo reset", () => {
     store.recordDecision({ record: hotel, action: "approve_exception", note: "x" });
     expect(Object.keys(useAppStore.getState().decisions)).toHaveLength(1);
 
-    useAppStore.getState().resetDemo();
+    useAppStore.getState().resetAll();
     expect(useAppStore.getState().decisions).toEqual({});
     expect(useAppStore.getState().humanAuditEvents).toHaveLength(0);
     expect(baseCases()).toHaveLength(cases.length);

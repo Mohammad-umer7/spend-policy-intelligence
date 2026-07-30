@@ -1,4 +1,4 @@
-import type {
+﻿import type {
   ApprovalRecord,
   EvidenceItem,
   EvidenceKind,
@@ -91,7 +91,7 @@ export const transactions: Transaction[] = [
   // MARKETING — the department carrying the budget risk in this demo period
   // ─────────────────────────────────────────────────────────────────────────
   {
-    // DEMO CASE 1 — hotel above the approved travel band
+    // SCRIPTED CASE 1 — hotel above the approved travel band
     id: "TXN-2041",
     employeeId: "EMP-1042",
     merchant: "Marsa Bay Hotel & Conference Centre",
@@ -170,10 +170,10 @@ export const transactions: Transaction[] = [
         relationship: "same_trip",
       },
     ],
-    demoCase: "hotel_above_band",
+    scriptedCase: "hotel_above_band",
   },
   {
-    // DEMO CASE 5 — subscription overlapping an existing enterprise licence
+    // SCRIPTED CASE 5 — subscription overlapping an existing enterprise licence
     id: "TXN-2044",
     employeeId: "EMP-1290",
     merchant: "Trailhead PM",
@@ -230,7 +230,7 @@ export const transactions: Transaction[] = [
         relationship: "overlapping_tool",
       },
     ],
-    demoCase: "overlapping_subscription",
+    scriptedCase: "overlapping_subscription",
   },
   {
     id: "TXN-2032",
@@ -278,7 +278,7 @@ export const transactions: Transaction[] = [
         relationship: "overlapping_tool",
       },
     ],
-    demoCase: "overlapping_subscription",
+    scriptedCase: "overlapping_subscription",
   },
   {
     id: "TXN-2018",
@@ -852,7 +852,7 @@ export const transactions: Transaction[] = [
     related: [],
   },
   {
-    // DEMO CASE 3 — weekend team meal with attendee names missing
+    // SCRIPTED CASE 3 — weekend team meal with attendee names missing
     id: "TXN-2036",
     employeeId: "EMP-1176",
     merchant: "Talabat",
@@ -890,10 +890,10 @@ export const transactions: Transaction[] = [
     ],
     approval: null,
     related: [],
-    demoCase: "weekend_team_meal",
+    scriptedCase: "weekend_team_meal",
   },
   {
-    // DEMO CASE 4 — fuel recorded outside the assigned emirate
+    // SCRIPTED CASE 4 — fuel recorded outside the assigned emirate
     id: "TXN-2052",
     employeeId: "EMP-1108",
     merchant: "Emarat",
@@ -919,7 +919,7 @@ export const transactions: Transaction[] = [
     ],
     approval: null,
     related: [],
-    demoCase: "fuel_location_mismatch",
+    scriptedCase: "fuel_location_mismatch",
   },
   {
     id: "TXN-2017",
@@ -1146,7 +1146,7 @@ export const transactions: Transaction[] = [
   // PROCUREMENT
   // ─────────────────────────────────────────────────────────────────────────
   {
-    // DEMO CASE 2a — first of two similar supplier settlements
+    // SCRIPTED CASE 2a — first of two similar supplier settlements
     id: "TXN-2029",
     employeeId: "EMP-1203",
     merchant: "Gulf Fresh Produce Trading",
@@ -1187,10 +1187,10 @@ export const transactions: Transaction[] = [
         relationship: "possible_duplicate",
       },
     ],
-    demoCase: "possible_duplicate",
+    scriptedCase: "possible_duplicate",
   },
   {
-    // DEMO CASE 2b — second of two similar supplier settlements
+    // SCRIPTED CASE 2b — second of two similar supplier settlements
     id: "TXN-2033",
     employeeId: "EMP-1247",
     merchant: "Gulf Fresh Produce Trading",
@@ -1235,7 +1235,7 @@ export const transactions: Transaction[] = [
         relationship: "possible_duplicate",
       },
     ],
-    demoCase: "possible_duplicate",
+    scriptedCase: "possible_duplicate",
   },
   {
     id: "TXN-2015",

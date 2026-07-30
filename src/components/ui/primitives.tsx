@@ -4,25 +4,10 @@ import { forwardRef, type ButtonHTMLAttributes, type HTMLAttributes, type ReactN
 import { cn } from "@/lib/cn";
 import type { RiskLevel, Verdict } from "@/lib/types";
 
-/* ── Panels ────────────────────────────────────────────────────────────── */
+/* ── Surfaces ──────────────────────────────────────────────────────────── */
 
-type PanelProps = HTMLAttributes<HTMLDivElement> & {
-  /** Glass is for chrome and summaries; solid is for anything read closely. */
-  variant?: "glass" | "solid" | "raised";
-};
-
-export function Panel({ variant = "solid", className, ...props }: PanelProps) {
-  return (
-    <div
-      className={cn(
-        variant === "glass" && "glass",
-        variant === "solid" && "panel",
-        variant === "raised" && "panel-raised",
-        className,
-      )}
-      {...props}
-    />
-  );
+export function Panel({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
+  return <div className={cn("panel", className)} {...props} />;
 }
 
 export function SectionHeading({
@@ -37,10 +22,10 @@ export function SectionHeading({
   className?: string;
 }) {
   return (
-    <div className={cn("flex items-start justify-between gap-4", className)}>
+    <div className={cn("flex items-baseline justify-between gap-4", className)}>
       <div className="min-w-0">
-        <h2 className="text-[0.95rem] font-semibold tracking-tight text-mist-50">{title}</h2>
-        {hint ? <p className="mt-1 text-xs leading-relaxed text-mist-400">{hint}</p> : null}
+        <h2 className="text-[0.8125rem] font-semibold tracking-tight text-ink-900">{title}</h2>
+        {hint ? <p className="mt-0.5 text-xs text-ink-500">{hint}</p> : null}
       </div>
       {action ? <div className="shrink-0">{action}</div> : null}
     </div>
@@ -50,7 +35,7 @@ export function SectionHeading({
 /* ── Buttons ───────────────────────────────────────────────────────────── */
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: "primary" | "secondary" | "ghost" | "danger" | "success";
+  variant?: "primary" | "secondary" | "ghost";
   size?: "sm" | "md";
 };
 
@@ -62,18 +47,13 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
     <button
       ref={ref}
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors",
-        "disabled:cursor-not-allowed disabled:opacity-45",
-        size === "sm" ? "h-8 px-3 text-xs" : "h-9 px-3.5 text-[0.8125rem]",
-        variant === "primary" &&
-          "bg-gradient-to-r from-accent-600 to-info-500 text-white shadow-[0_6px_18px_-8px_rgb(79_70_229/0.9)] hover:from-accent-500 hover:to-info-400",
+        "inline-flex items-center justify-center gap-2 rounded-[0.1875rem] font-medium transition-colors",
+        "disabled:cursor-not-allowed disabled:opacity-40",
+        size === "sm" ? "h-7 px-2.5 text-xs" : "h-8 px-3 text-[0.8125rem]",
+        variant === "primary" && "bg-accent-600 text-white hover:bg-accent-700",
         variant === "secondary" &&
-          "border border-white/12 bg-white/5 text-mist-100 hover:border-white/22 hover:bg-white/8",
-        variant === "ghost" && "text-mist-300 hover:bg-white/6 hover:text-mist-50",
-        variant === "danger" &&
-          "border border-escalate-500/35 bg-escalate-500/12 text-escalate-400 hover:bg-escalate-500/20",
-        variant === "success" &&
-          "border border-pass-500/35 bg-pass-500/12 text-pass-400 hover:bg-pass-500/20",
+          "border border-[--hairline-strong] bg-white text-ink-800 hover:bg-ink-50",
+        variant === "ghost" && "text-ink-600 hover:bg-ink-100 hover:text-ink-900",
         className,
       )}
       {...props}
@@ -81,18 +61,24 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
   );
 });
 
-/* ── Badges ────────────────────────────────────────────────────────────── */
+/* ── Status ────────────────────────────────────────────────────────────── */
 
-const verdictStyles: Record<Verdict, string> = {
-  pass: "border-pass-500/30 bg-pass-500/12 text-pass-400",
-  flag: "border-flag-500/30 bg-flag-500/12 text-flag-400",
-  escalate: "border-escalate-500/30 bg-escalate-500/12 text-escalate-400",
+/*
+  Status is carried by a text label first. The dot is a secondary cue and never
+  appears on its own, so the information survives greyscale printing and any
+  form of colour blindness.
+*/
+
+const verdictText: Record<Verdict, string> = {
+  pass: "text-pass-700",
+  flag: "text-flag-700",
+  escalate: "text-escalate-700",
 };
 
-const riskStyles: Record<RiskLevel, string> = {
-  low: "border-white/12 bg-white/5 text-mist-300",
-  medium: "border-flag-500/30 bg-flag-500/10 text-flag-400",
-  high: "border-escalate-500/30 bg-escalate-500/12 text-escalate-400",
+const verdictDot: Record<Verdict, string> = {
+  pass: "bg-pass-600",
+  flag: "bg-flag-600",
+  escalate: "bg-escalate-600",
 };
 
 export function VerdictBadge({
@@ -109,16 +95,23 @@ export function VerdictBadge({
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-md border font-semibold uppercase tracking-wide",
-        size === "sm" ? "px-2 py-0.5 text-[0.6875rem]" : "px-3 py-1 text-xs",
-        verdictStyles[verdict],
+        "inline-flex items-center gap-1.5 font-semibold uppercase tracking-wide",
+        size === "sm" ? "text-[0.6875rem]" : "text-xs",
+        verdictText[verdict],
         className,
       )}
     >
+      <span className={cn("h-1.5 w-1.5 shrink-0 rounded-full", verdictDot[verdict])} />
       {label}
     </span>
   );
 }
+
+const riskText: Record<RiskLevel, string> = {
+  low: "text-ink-600",
+  medium: "text-flag-700",
+  high: "text-escalate-700",
+};
 
 export function RiskBadge({
   risk,
@@ -130,15 +123,7 @@ export function RiskBadge({
   className?: string;
 }) {
   return (
-    <span
-      className={cn(
-        "inline-flex items-center rounded-md border px-2 py-0.5 text-[0.6875rem] font-medium",
-        riskStyles[risk],
-        className,
-      )}
-    >
-      {label}
-    </span>
+    <span className={cn("text-[0.75rem] font-medium", riskText[risk], className)}>{label}</span>
   );
 }
 
@@ -154,12 +139,12 @@ export function Chip({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-[0.6875rem] font-medium",
-        tone === "neutral" && "border-white/10 bg-white/4 text-mist-300",
-        tone === "info" && "border-info-500/25 bg-info-500/10 text-info-400",
-        tone === "warn" && "border-flag-500/25 bg-flag-500/10 text-flag-400",
-        tone === "danger" && "border-escalate-500/25 bg-escalate-500/10 text-escalate-400",
-        tone === "good" && "border-pass-500/25 bg-pass-500/10 text-pass-400",
+        "inline-flex items-center gap-1.5 rounded-[0.1875rem] border px-1.5 py-0.5 text-[0.6875rem] font-medium",
+        tone === "neutral" && "border-ink-200 bg-ink-50 text-ink-700",
+        tone === "info" && "border-accent-500/25 bg-accent-50 text-accent-700",
+        tone === "warn" && "border-flag-600/25 bg-flag-50 text-flag-700",
+        tone === "danger" && "border-escalate-600/25 bg-escalate-50 text-escalate-700",
+        tone === "good" && "border-pass-600/25 bg-pass-50 text-pass-700",
         className,
       )}
     >
@@ -183,11 +168,11 @@ export function Field({
 }) {
   return (
     <div className={cn("min-w-0", className)}>
-      <dt className="text-[0.6875rem] uppercase tracking-wide text-mist-500">{label}</dt>
+      <dt className="label">{label}</dt>
       <dd
         className={cn(
-          "mt-1 truncate text-sm text-mist-100",
-          mono && "numeric font-mono text-[0.8125rem]",
+          "mt-0.5 truncate text-[0.8125rem] text-ink-900",
+          mono && "numeric font-mono text-xs",
         )}
       >
         {value}
@@ -209,14 +194,14 @@ export function Meter({
 }) {
   const clamped = Math.max(0, Math.min(1, value));
   return (
-    <div className={cn("h-1.5 w-full overflow-hidden rounded-full bg-white/8", className)}>
+    <div className={cn("h-1 w-full overflow-hidden rounded-full bg-ink-200", className)}>
       <div
         className={cn(
-          "h-full rounded-full transition-[width] duration-700 ease-out",
-          tone === "accent" && "bg-gradient-to-r from-accent-500 to-info-400",
-          tone === "good" && "bg-pass-500",
-          tone === "warn" && "bg-flag-500",
-          tone === "danger" && "bg-escalate-500",
+          "h-full rounded-full transition-[width] duration-500 ease-out",
+          tone === "accent" && "bg-accent-600",
+          tone === "good" && "bg-pass-600",
+          tone === "warn" && "bg-flag-600",
+          tone === "danger" && "bg-escalate-600",
         )}
         style={{ width: `${clamped * 100}%` }}
       />
@@ -224,41 +209,16 @@ export function Meter({
   );
 }
 
-export function EmptyState({
-  icon,
-  title,
-  body,
-  action,
-}: {
-  icon?: ReactNode;
-  title: string;
-  body: string;
-  action?: ReactNode;
-}) {
+export function Skeleton({ className }: { className?: string }) {
+  return <div className={cn("animate-pulse rounded-[0.1875rem] bg-ink-100", className)} />;
+}
+
+export function EmptyState({ title, body, action }: { title: string; body: string; action?: ReactNode }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 px-6 py-14 text-center">
-      {icon ? <div className="text-mist-500">{icon}</div> : null}
-      <p className="text-sm font-medium text-mist-100">{title}</p>
-      <p className="max-w-sm text-xs leading-relaxed text-mist-400">{body}</p>
+    <div className="flex flex-col items-center justify-center gap-2 px-6 py-12 text-center">
+      <p className="text-[0.8125rem] font-medium text-ink-800">{title}</p>
+      <p className="max-w-sm text-xs leading-relaxed text-ink-500">{body}</p>
       {action}
     </div>
-  );
-}
-
-export function Skeleton({ className }: { className?: string }) {
-  return <div className={cn("animate-pulse rounded-md bg-white/6", className)} />;
-}
-
-/** Small inline help affordance; native title keeps it accessible and cheap. */
-export function InfoHint({ text }: { text: string }) {
-  return (
-    <span
-      title={text}
-      aria-label={text}
-      tabIndex={0}
-      className="inline-flex h-4 w-4 cursor-help items-center justify-center rounded-full border border-white/15 text-[0.5625rem] font-semibold text-mist-400"
-    >
-      ?
-    </span>
   );
 }

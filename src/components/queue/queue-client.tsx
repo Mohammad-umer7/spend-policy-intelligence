@@ -1,9 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { ChevronRight, Search, SlidersHorizontal } from "lucide-react";
-import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { Search } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { departments } from "@/lib/data/company";
 import { formatAed, formatAge, formatDate } from "@/lib/format";
@@ -12,22 +11,13 @@ import {
   filterCases,
   isQueueFilter,
   sortForQueue,
-  type AmountRange,
-  type DateRange,
   type QueueFilter,
   type QueueQuery,
 } from "@/lib/engine/queue-filters";
 import type { DepartmentId } from "@/lib/types";
-import { useAppliedOnce } from "@/lib/hooks/use-applied-once";
+import { useQueryParams } from "@/lib/hooks/use-query-params";
 import { useCases, useLocale, useLocalised, useT } from "@/lib/store/hooks";
-import {
-  Button,
-  Chip,
-  EmptyState,
-  Panel,
-  RiskBadge,
-  VerdictBadge,
-} from "@/components/ui/primitives";
+import { Button, EmptyState, Panel, RiskBadge, VerdictBadge } from "@/components/ui/primitives";
 import type { TranslationKey } from "@/lib/i18n/dictionary";
 
 const filterTabs: { value: QueueFilter; labelKey: TranslationKey }[] = [
@@ -45,174 +35,138 @@ export function QueueClient() {
   const L = useLocalised();
   const cases = useCases();
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useQueryParams();
 
-  const [query, setQuery] = useState<QueueQuery>(defaultQuery);
-
-  // Deep links from the dashboard and notifications land here. Applying them
-  // during render means the first paint already shows the filtered queue.
+  // Deep links from the overview set the base query; anything the reviewer
+  // then changes is layered on top. Deriving rather than syncing means there
+  // is no effect and no state to keep in step with the URL.
   const urlFilter = searchParams.get("filter");
   const urlDepartment = searchParams.get("department");
-  useAppliedOnce(`${urlFilter ?? ""}|${urlDepartment ?? ""}`, () => {
-    setQuery((prev) => ({
-      ...prev,
-      filter: isQueueFilter(urlFilter) ? urlFilter : prev.filter,
+  const [override, setOverride] = useState<Partial<QueueQuery>>({});
+
+  const query = useMemo<QueueQuery>(
+    () => ({
+      ...defaultQuery,
+      filter: isQueueFilter(urlFilter) ? urlFilter : defaultQuery.filter,
       department: departments.some((d) => d.id === urlDepartment)
         ? (urlDepartment as DepartmentId)
-        : prev.department,
-    }));
-  });
-
-  const rows = useMemo(
-    () => sortForQueue(filterCases(cases, query)),
-    [cases, query],
+        : defaultQuery.department,
+      ...override,
+    }),
+    [urlFilter, urlDepartment, override],
   );
 
+  const rows = useMemo(() => sortForQueue(filterCases(cases, query)), [cases, query]);
+
   const isFiltered =
-    query.filter !== "all" ||
-    query.department !== "all" ||
-    query.amount !== "any" ||
-    query.date !== "any" ||
-    query.search.trim() !== "";
+    query.filter !== "all" || query.department !== "all" || query.search.trim() !== "";
 
   function update(patch: Partial<QueueQuery>) {
-    setQuery((prev) => ({ ...prev, ...patch }));
+    setOverride((prev) => ({ ...prev, ...patch }));
+  }
+
+  function clearFilters() {
+    setOverride(defaultQuery);
+    router.replace("/queue");
   }
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+      <div className="flex flex-wrap items-baseline justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight text-mist-50">{t("queue.title")}</h1>
-          <p className="mt-1 text-xs text-mist-400">{t("queue.subtitle")}</p>
+          <h1 className="text-base font-semibold tracking-tight text-ink-900">{t("queue.title")}</h1>
+          <p className="mt-0.5 text-xs text-ink-500">{t("queue.subtitle")}</p>
         </div>
-        <p className="text-xs text-mist-500">
+        <p className="numeric text-xs text-ink-500">
           {t("queue.showing", { shown: rows.length, total: cases.length })}
         </p>
       </div>
 
-      {/* Filters */}
-      <Panel variant="glass" className="p-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex flex-wrap items-center gap-1 rounded-lg border border-white/8 bg-white/3 p-1">
-            {filterTabs.map((tab) => {
-              const active = query.filter === tab.value;
-              return (
-                <button
-                  key={tab.value}
-                  onClick={() => update({ filter: tab.value })}
-                  className={cn(
-                    "relative rounded-md px-2.5 py-1.5 text-[0.75rem] transition-colors",
-                    active ? "text-mist-50" : "text-mist-400 hover:text-mist-100",
-                  )}
-                >
-                  {active ? (
-                    <motion.span
-                      layoutId="queue-tab"
-                      className="absolute inset-0 -z-10 rounded-md border border-white/12 bg-white/8"
-                      transition={{ type: "spring", stiffness: 400, damping: 34 }}
-                    />
-                  ) : null}
-                  {t(tab.labelKey)}
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="relative min-w-[13rem] flex-1">
-            <Search className="pointer-events-none absolute start-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-mist-500" />
-            <input
-              value={query.search}
-              onChange={(e) => update({ search: e.target.value })}
-              placeholder={t("queue.search")}
-              aria-label={t("queue.search")}
-              className="h-9 w-full rounded-lg border border-white/10 bg-white/4 ps-8 pe-3 text-[0.8125rem] text-mist-100 placeholder:text-mist-500 focus:border-white/20 focus:outline-none"
-            />
-          </div>
-
-          <Select
-            value={query.department}
-            onChange={(v) => update({ department: v as QueueQuery["department"] })}
-            ariaLabel={t("queue.filter.department")}
-            options={[
-              { value: "all", label: t("queue.filter.allDepartments") },
-              ...departments.map((d) => ({ value: d.id, label: L(d.name, d.nameAr) })),
-            ]}
-          />
-
-          <Select
-            value={query.amount}
-            onChange={(v) => update({ amount: v as AmountRange })}
-            ariaLabel={t("queue.filter.amount")}
-            options={[
-              { value: "any", label: t("queue.filter.anyAmount") },
-              { value: "under1k", label: `< ${formatAed(1000, locale)}` },
-              { value: "1kTo10k", label: `${formatAed(1000, locale)} – ${formatAed(10000, locale)}` },
-              { value: "over10k", label: `> ${formatAed(10000, locale)}` },
-            ]}
-          />
-
-          <Select
-            value={query.date}
-            onChange={(v) => update({ date: v as DateRange })}
-            ariaLabel={t("queue.filter.date")}
-            options={[
-              { value: "any", label: t("queue.filter.anyDate") },
-              { value: "last7", label: t("queue.filter.last7") },
-              { value: "last14", label: t("queue.filter.last14") },
-            ]}
-          />
-
-          {isFiltered ? (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setQuery(defaultQuery);
-                router.replace("/queue");
-              }}
-            >
-              {t("queue.filter.clear")}
-            </Button>
-          ) : null}
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-0.5">
+          {filterTabs.map((tab) => {
+            const active = query.filter === tab.value;
+            return (
+              <button
+                key={tab.value}
+                onClick={() => update({ filter: tab.value })}
+                aria-pressed={active}
+                className={cn(
+                  "rounded-[0.1875rem] px-2.5 py-1 text-[0.75rem] transition-colors",
+                  active
+                    ? "bg-ink-900 font-medium text-white"
+                    : "text-ink-600 hover:bg-ink-100 hover:text-ink-900",
+                )}
+              >
+                {t(tab.labelKey)}
+              </button>
+            );
+          })}
         </div>
-      </Panel>
 
-      {/* Table — solid panel, never glass, so rows stay readable */}
+        <div className="relative ms-auto min-w-[13rem] flex-1 sm:max-w-xs">
+          <Search className="pointer-events-none absolute start-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ink-400" />
+          <input
+            value={query.search}
+            onChange={(e) => update({ search: e.target.value })}
+            placeholder={t("queue.search")}
+            aria-label={t("queue.search")}
+            className="h-8 w-full rounded-[0.1875rem] border border-[--hairline] bg-white ps-8 pe-3 text-[0.8125rem] text-ink-900 placeholder:text-ink-400 focus:border-[--hairline-strong] focus:outline-none"
+          />
+        </div>
+
+        <select
+          value={query.department}
+          onChange={(e) => update({ department: e.target.value as QueueQuery["department"] })}
+          aria-label={t("queue.filter.department")}
+          className="h-8 rounded-[0.1875rem] border border-[--hairline] bg-white px-2 text-[0.75rem] text-ink-800 focus:border-[--hairline-strong] focus:outline-none"
+        >
+          <option value="all">{t("queue.filter.allDepartments")}</option>
+          {departments.map((d) => (
+            <option key={d.id} value={d.id}>
+              {L(d.name, d.nameAr)}
+            </option>
+          ))}
+        </select>
+
+        {isFiltered ? (
+          <Button variant="ghost" size="sm" onClick={clearFilters}>
+            {t("queue.filter.clear")}
+          </Button>
+        ) : null}
+      </div>
+
       <Panel className="overflow-hidden">
         {rows.length === 0 ? (
           <EmptyState
-            icon={<SlidersHorizontal className="h-6 w-6" />}
             title={t("queue.empty.title")}
             body={t("queue.empty.body")}
             action={
-              <Button variant="secondary" size="sm" onClick={() => setQuery(defaultQuery)}>
+              <Button variant="secondary" size="sm" onClick={clearFilters}>
                 {t("queue.filter.clear")}
               </Button>
             }
           />
         ) : (
-          <div className="max-h-[calc(100dvh-19rem)] overflow-auto">
-            <table className="w-full min-w-[68rem] border-collapse text-start">
-              <thead className="sticky top-0 z-10 bg-ink-850/95 backdrop-blur">
+          <div className="max-h-[calc(100dvh-15rem)] overflow-auto">
+            <table className="w-full min-w-[58rem] border-collapse text-start">
+              <thead className="sticky top-0 z-10 bg-white">
                 <tr className="hairline-b">
                   <Th>{t("queue.col.transaction")}</Th>
+                  <Th>{t("queue.col.merchant")}</Th>
                   <Th>{t("queue.col.employee")}</Th>
                   <Th>{t("queue.col.department")}</Th>
-                  <Th>{t("queue.col.merchant")}</Th>
                   <Th align="end">{t("queue.col.amount")}</Th>
                   <Th>{t("queue.col.verdict")}</Th>
                   <Th>{t("queue.col.risk")}</Th>
                   <Th>{t("queue.col.clause")}</Th>
-                  <Th>{t("queue.col.evidence")}</Th>
+                  <Th align="end">{t("queue.col.evidence")}</Th>
                   <Th align="end">{t("queue.col.age")}</Th>
-                  <Th align="end">{t("queue.col.action")}</Th>
                 </tr>
               </thead>
               <tbody>
                 {rows.map((record) => {
                   const evidence = record.analysis.evidence;
-                  const complete = evidence.missing.length === 0;
                   return (
                     <tr
                       key={record.transaction.id}
@@ -221,36 +175,33 @@ export function QueueClient() {
                       onKeyDown={(e) => {
                         if (e.key === "Enter") router.push(`/transactions/${record.transaction.id}`);
                       }}
-                      className="hairline-b cursor-pointer transition-colors last:border-b-0 hover:bg-white/4 focus-visible:bg-white/6"
+                      className="hairline-b cursor-pointer transition-colors last:border-b-0 hover:bg-ink-50 focus-visible:bg-ink-50"
                     >
                       <Td>
-                        <span className="numeric font-mono text-[0.75rem] text-mist-200">
+                        <span className="numeric font-mono text-[0.75rem] text-ink-700">
                           {record.transaction.id}
                         </span>
-                        <span className="mt-0.5 block text-[0.6875rem] text-mist-500">
+                        <span className="mt-0.5 block text-[0.6875rem] text-ink-400">
                           {formatDate(record.transaction.occurredAt, locale)}
                         </span>
                       </Td>
                       <Td>
-                        <span className="block truncate text-mist-100">
-                          {L(record.employee.name, record.employee.nameAr)}
-                        </span>
-                        <span className="mt-0.5 block truncate text-[0.6875rem] text-mist-500">
-                          {record.employee.level}
-                        </span>
-                      </Td>
-                      <Td>
-                        <span className="text-mist-300">
-                          {L(record.department.name, record.department.nameAr)}
-                        </span>
-                      </Td>
-                      <Td>
-                        <span className="block max-w-[15rem] truncate text-mist-100">
+                        <span className="block max-w-[16rem] truncate text-ink-900">
                           {L(record.transaction.merchant, record.transaction.merchantAr)}
                         </span>
                       </Td>
+                      <Td>
+                        <span className="block truncate text-ink-800">
+                          {L(record.employee.name, record.employee.nameAr)}
+                        </span>
+                      </Td>
+                      <Td>
+                        <span className="text-ink-600">
+                          {L(record.department.name, record.department.nameAr)}
+                        </span>
+                      </Td>
                       <Td align="end">
-                        <span className="numeric font-medium text-mist-50">
+                        <span className="numeric font-medium text-ink-900">
                           {formatAed(record.transaction.amountAed, locale)}
                         </span>
                       </Td>
@@ -267,26 +218,23 @@ export function QueueClient() {
                         />
                       </Td>
                       <Td>
-                        <span className="numeric font-mono text-[0.6875rem] text-mist-300">
+                        <span className="numeric font-mono text-[0.6875rem] text-ink-600">
                           {record.analysis.citedClauseIds[0] ?? "—"}
                         </span>
                       </Td>
-                      <Td>
-                        <Chip tone={complete ? "good" : "warn"}>
-                          <span className="numeric">
-                            {evidence.presentCount}/{evidence.requiredCount}
-                          </span>
-                        </Chip>
-                      </Td>
                       <Td align="end">
-                        <span className="numeric text-[0.75rem] text-mist-400">
-                          {formatAge(record.ageHours, locale)}
+                        <span
+                          className={cn(
+                            "numeric text-[0.75rem]",
+                            evidence.missing.length === 0 ? "text-ink-600" : "text-flag-700",
+                          )}
+                        >
+                          {evidence.presentCount}/{evidence.requiredCount}
                         </span>
                       </Td>
                       <Td align="end">
-                        <span className="inline-flex items-center gap-1 text-[0.75rem] text-info-400">
-                          {t("action.viewCase")}
-                          <ChevronRight className="h-3.5 w-3.5 rtl:rotate-180" />
+                        <span className="numeric text-[0.75rem] text-ink-500">
+                          {formatAge(record.ageHours, locale)}
                         </span>
                       </Td>
                     </tr>
@@ -305,10 +253,7 @@ function Th({ children, align = "start" }: { children: React.ReactNode; align?: 
   return (
     <th
       scope="col"
-      className={cn(
-        "whitespace-nowrap px-3 py-2.5 text-[0.6875rem] font-medium uppercase tracking-wide text-mist-500",
-        align === "end" ? "text-end" : "text-start",
-      )}
+      className={cn("label whitespace-nowrap px-3 py-2", align === "end" ? "text-end" : "text-start")}
     >
       {children}
     </th>
@@ -319,38 +264,11 @@ function Td({ children, align = "start" }: { children: React.ReactNode; align?: 
   return (
     <td
       className={cn(
-        "px-3 py-3 align-middle text-[0.8125rem]",
+        "px-3 py-2.5 align-middle text-[0.8125rem]",
         align === "end" ? "text-end" : "text-start",
       )}
     >
       {children}
     </td>
-  );
-}
-
-function Select({
-  value,
-  onChange,
-  options,
-  ariaLabel,
-}: {
-  value: string;
-  onChange: (value: string) => void;
-  options: { value: string; label: string }[];
-  ariaLabel: string;
-}) {
-  return (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      aria-label={ariaLabel}
-      className="h-9 rounded-lg border border-white/10 bg-white/4 px-2.5 text-[0.75rem] text-mist-200 focus:border-white/20 focus:outline-none"
-    >
-      {options.map((option) => (
-        <option key={option.value} value={option.value} className="bg-ink-850 text-mist-100">
-          {option.label}
-        </option>
-      ))}
-    </select>
   );
 }

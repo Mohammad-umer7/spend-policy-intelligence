@@ -4,7 +4,7 @@
 
 A fintech proof of concept for the intelligence layer that sits on top of a spend-management platform. It reads a company's written expense policy, checks every transaction against it, and hands a finance reviewer a decision-ready case — the verdict, the exact clause, the evidence, what is missing, and what to do next.
 
-> **Demo environment · Synthetic data only.** Every company, employee, transaction, policy clause and receipt in this repository is fictional and was written for this demonstration. No real customer, cardholder or financial data is present anywhere in the codebase.
+> All data in this repository is fictional. Every company, employee, transaction, policy clause and receipt was written for this build. No real customer, cardholder or financial data is present anywhere in the codebase.
 
 ---
 
@@ -20,19 +20,7 @@ This product is that missing layer.
 
 ## What it does
 
-For every transaction, the system checks:
-
-- the company's written policy, clause by clause
-- the employee's role, grade and spending band
-- the department's budget position
-- the receipt and supporting documents
-- existing approvals
-- the merchant category
-- related transactions
-- historical interpretations of the same clause
-- what information is missing
-
-and produces:
+For every transaction, the system checks the written policy clause by clause, the employee's grade and spending band, the department's budget position, the receipt and supporting documents, existing approvals, the merchant category, related transactions, and what information is missing. It produces:
 
 | Output | Example |
 |---|---|
@@ -80,14 +68,12 @@ npm run verify   # lint + typecheck + tests + production build
 | `npm test` | Vitest suite |
 | `npm run verify` | All of the above, in order |
 
-### Demo mode behaviour
+### Deterministic by design
 
-The demo is deliberately deterministic:
-
-- A **fixed clock** (`DEMO_NOW = 24 July 2026, 09:15 +04:00`) drives every "case age", "last 7 days" filter and forecast. Nothing drifts between runs or between machines.
+- A **fixed clock** (`REFERENCE_NOW = 24 July 2026, 09:15 +04:00`) drives every case age, date filter and forecast. Nothing drifts between runs or between machines.
 - All timestamps render in `Asia/Dubai` so the server and client always agree.
 - Reviewer decisions persist to `localStorage` under a versioned key and survive a refresh.
-- **Settings → Reset demo data** clears every decision and audit event and restores the pristine dataset.
+- **Reset data**, at the foot of the sidebar, clears every decision and audit event and restores the pristine dataset.
 
 ### Optional Claude mode
 
@@ -103,11 +89,11 @@ The key is read on the server only, inside `src/app/api/explain/route.ts`, and i
 3. constrains the response with a strict JSON schema containing *only* the four prose fields,
 4. falls back to the deterministic narrative on refusal, schema mismatch, or any error.
 
-The demo does not depend on this path. With no key, everything above still works.
+Nothing depends on this path. With no key, everything above still works.
 
 ---
 
-## What is in the demo dataset
+## The dataset
 
 **Northstar Hospitality Group LLC** — a fictional UAE food and beverage group: 12 restaurant locations, ~320 employees, five departments, all amounts in AED.
 
@@ -116,9 +102,9 @@ The demo does not depend on this path. With no key, everything above still works
 - **3 escalations, 8 flags, 36 passes** — produced by the engine, not hand-assigned
 - **Marketing** is the one department forecast over budget, by exactly **AED 18,400**
 
-Every number on the dashboard is derived from that ledger. There are no hard-coded totals anywhere; the data-consistency test suite asserts this.
+Every number on screen is derived from that ledger. There are no hard-coded totals anywhere; the data-consistency suite asserts this.
 
-### The five demonstration cases
+### The five scripted cases
 
 | # | Case | Verdict | Why |
 |---|---|---|---|
@@ -132,31 +118,27 @@ Cases 2 and 4 are written with particular care: the language describes what the 
 
 ---
 
-## Features
+## The four screens
 
-**Executive Overview** — AI daily brief, spend against budget, cases needing review, high-risk exceptions, missing evidence, potential savings, and the single most urgent action. Every insight is a link into the records behind it.
+**Executive Overview** — four figures, one chart, one list. Spend against budget, budget remaining, what needs review, what is missing evidence; spend against budget by department; and the priority cases. Every figure links into the records behind it.
 
-**Review Queue** — sortable, filterable table with sticky headers. Filter by verdict, risk, missing evidence, department, amount band and date window; search across IDs, merchants, employees, departments and clause IDs, in both languages.
+**Review Queue** — filterable table with sticky headers. Filter by verdict, risk, missing evidence and department; search across IDs, merchants, employees and clause IDs, in both languages.
 
-**Transaction Investigation** — the three-column hero screen. The record and receipt on the left, the assessment in the centre, the policy and the human decision on the right. Includes a per-explanation English/Arabic switch independent of the interface language.
+**Transaction Investigation** — three columns. The record and receipt on the left, the assessment in the centre, the policy and the human decision on the right. A per-explanation English/Arabic switch works independently of the interface language.
 
-**Policy Brain** — the published policy, searchable and filterable by category, with a simulated ingestion pipeline that stops at *awaiting policy-owner publication*. A policy is never activated automatically.
-
-**AI Daily Brief** — attention, budget risks, exceptions, missing documents, vendor observations, savings, recommended actions, plus CEO / finance / department-manager summary drafts marked *AI-generated draft · Review before sharing*.
+**Policy Brain** — the published policy, searchable and filterable by category. Each clause shows its verbatim text, effective date, the machine-readable thresholds the engine reads, prior interpretations, and every transaction assessed against it.
 
 **Audit Trail** — every rule evaluation, model call and human decision, with a detail drawer and a visual distinction between the three sources.
 
-**Security & Settings** — the configuration posture, the processing boundary diagram, and the design principles, stated in careful non-certifying language.
+**Finance Copilot** — a drawer, available on every screen, answering grounded questions. Every answer carries the supporting transactions, the cited clauses, the numbers used, what is missing, and a recommended next action. It drafts; it never claims to have acted.
 
-**Finance Copilot** — a right-side drawer answering grounded questions. Every answer carries the supporting transactions, the cited clauses, the numbers used, what is missing, and a recommended next action. It drafts; it never claims to have acted.
+### Design
+
+Light, neutral and dense: white surfaces separated by hairlines rather than cards or shadows, tabular numerals so columns align down the page, and one ink accent for interaction. Colour carries meaning only — the three status hues are reserved for verdicts and never appear without an accompanying text label, so the information survives greyscale printing and any form of colour blindness.
 
 ### Arabic
 
-Full RTL with logical CSS properties throughout, professional business Arabic (written for a finance audience rather than machine-translated), Arabic transaction explanations, and Latin numerals retained so figures always match the ledger. Charts stay left-to-right by design — a mirrored time axis reads as a data error, not a translation.
-
-### Reviewer learning
-
-A single reviewer decision never becomes policy. Decisions are stored as labelled feedback; when the same decision recurs against the same clause, a **suggested precedent** appears marked *Requires policy-owner approval*. Only the policy owner can convert it into a versioned interpretation, and that approval is itself audited.
+Full RTL with logical CSS properties throughout, professional business Arabic (written for a finance audience rather than machine-translated), Arabic transaction explanations, and Latin numerals retained so figures always match the ledger. Charts stay left-to-right by design — a mirrored axis reads as a data error, not a translation.
 
 ---
 
@@ -168,20 +150,17 @@ A single reviewer decision never becomes policy. Decisions are stored as labelle
 | **TypeScript, strict** | The domain model is the specification. No unnecessary `any`. |
 | **Tailwind CSS v4** | Design tokens in `@theme`; logical properties give RTL for free |
 | **Zustand + persist** | Small store, `skipHydration` + manual rehydrate to avoid hydration mismatch |
-| **Recharts** | Charts built to a validated palette (see below) |
-| **Framer Motion** | Restrained transitions only |
+| **Recharts** | Charts built to a validated palette |
 | **Zod** | Runtime validation at the API boundary |
-| **Vitest** | 93 tests over the engine, data, filters, store and demo flow |
+| **Vitest** | 88 tests over the engine, data, filters, store and presenter flow |
 
-### Chart colour
-
-The two-series department chart uses two steps of a single hue rather than two categorical hues. "Spent" and "committed" are parts of one magnitude, so a sequential encoding is the correct choice — and it means separation is carried by lightness, which is colourblind-safe by construction. Status colours (emerald / amber / coral) are reserved for verdicts and always ship with a text label, never colour alone. No chart uses a dual axis.
+**Chart colour.** The department chart uses two steps of a single hue rather than two categorical hues. "Spent" and "committed" are parts of one magnitude, so a sequential encoding is the correct choice — and separation is then carried by lightness, which is colourblind-safe by construction. No chart uses a dual axis.
 
 ---
 
 ## Security approach
 
-See the in-app **Security** page and [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 - No raw cardholder data is sent to a public model
 - An open-weight model can run inside the client VPC where residency requires it
@@ -197,9 +176,9 @@ See the in-app **Security** page and [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.
 
 This is a proof of concept. Being specific about what it is not:
 
-- **The dataset is synthetic and fixed.** 47 transactions, one company, one month, one policy version.
-- **Policy ingestion is simulated.** Real clause extraction from an arbitrary PDF is a substantial problem in itself; the pipeline here demonstrates the *shape* and the human-publication gate, not the extraction.
-- **Persistence is `localStorage`.** No server database, no real multi-user concurrency, no real authentication. The signed-in reviewer is a fixed persona.
+- **The dataset is fixed.** 47 transactions, one company, one month, one policy version.
+- **Policy ingestion is not implemented.** Clause extraction from an arbitrary PDF is a substantial problem in itself; the policy here is a typed object, authored by hand.
+- **Persistence is `localStorage`.** No server database, no multi-user concurrency, no real authentication. The signed-in reviewer is a fixed persona.
 - **Duplicate detection is declared, not inferred.** The related-transaction links are authored in the dataset. Production would need real similarity matching over merchant, amount, date and receipt references.
 - **No real integrations.** No card issuing, banking, payments or ERP.
 - **Arabic is hand-written for this dataset**, not produced by a translation pipeline. New transactions would need Arabic explanations generated.
@@ -217,19 +196,11 @@ This is a proof of concept. Being specific about what it is not:
 7. **Evaluation harness** — see [`docs/EVALUATION.md`](docs/EVALUATION.md); the metrics there need a labelled ground-truth set to run against.
 8. **PII redaction** — implement tokenisation before any model call, and test it adversarially.
 
-## Next steps
-
-- Wire the rules engine to a per-tenant configuration store so a new customer's policy is data, not code
-- Build the labelled evaluation set and run the metrics in `docs/EVALUATION.md` as a CI gate
-- Replace `localStorage` with a real append-only audit store behind an API
-- Add clause-level policy versioning with a diff view
-- Formal accessibility audit
-
 ## Documentation
 
 | Document | Contents |
 |---|---|
-| [`docs/DEMO_SCRIPT.md`](docs/DEMO_SCRIPT.md) | Three-minute presenter script, with the exact clicks and the lines to say |
+| [`docs/WALKTHROUGH.md`](docs/WALKTHROUGH.md) | Three-minute presenter script, with the exact clicks and the lines to say |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Frontend architecture, state, rules engine, AI abstraction, audit, security boundary, deployment |
 | [`docs/EVALUATION.md`](docs/EVALUATION.md) | How this system should be measured, and what is measurable today |
 
@@ -238,27 +209,26 @@ This is a proof of concept. Being specific about what it is not:
 ```
 src/
 ├── app/                    routes: overview, queue, transactions/[id],
-│                           policy, brief, audit, security, settings, api/explain
+│                           policy, audit, api/explain
 ├── components/
-│   ├── layout/             shell, sidebar, topbar, notifications
+│   ├── layout/             shell, sidebar, top bar
 │   ├── ui/                 primitives, modal, drawer, toasts
-│   ├── charts/             Recharts wrappers with the shared chart language
-│   ├── overview/           stat tiles, animated values
+│   ├── charts/             Recharts wrapper and the shared chart language
 │   ├── queue/              review table
-│   ├── investigation/      the three columns of the hero screen
-│   ├── policy/             clause browser, ingestion, precedents
+│   ├── investigation/      the three columns of the case screen
+│   ├── policy/             clause browser
 │   ├── audit/              audit table and detail drawer
 │   └── copilot/            finance copilot drawer
 └── lib/
     ├── types.ts            the domain model
-    ├── data/               synthetic company, policy, 47 transactions
-    ├── engine/             rules, evidence, budget, analysis, filters, precedents
-    ├── ai/                 mock narrative, copilot, brief, Claude provider
+    ├── data/               company, policy, 47 transactions
+    ├── engine/             rules, evidence, budget, analysis, filters
+    ├── ai/                 mock narrative, copilot, Claude provider
     ├── i18n/               English and Arabic dictionaries
     └── store/              Zustand store and hooks
-tests/                      93 tests
+tests/                      88 tests
 ```
 
 ---
 
-*Built as a demonstration of an AI intelligence layer for spend management. All data is synthetic.*
+*Built as a demonstration of an AI intelligence layer for spend management. All data is fictional.*

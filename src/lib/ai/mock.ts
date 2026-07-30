@@ -1,4 +1,4 @@
-import type {
+﻿import type {
   BudgetImpact,
   Employee,
   EvidenceAssessment,
@@ -36,13 +36,13 @@ export interface Narrative {
 }
 
 /**
- * Hand-authored narratives for the five scripted demo cases. Every claim below
+ * Hand-authored narratives for the five scripted cases. Every claim below
  * is traceable to a rule finding or an evidence item on the record.
  */
 function scriptedNarrative(input: NarrativeInput): Narrative | null {
   const { transaction, employee } = input;
 
-  switch (transaction.demoCase) {
+  switch (transaction.scriptedCase) {
     case "hotel_above_band": {
       const band = employee.travelBand.hotelNightlyAed * (transaction.nights ?? 1);
       const excess = transaction.amountAed - band;

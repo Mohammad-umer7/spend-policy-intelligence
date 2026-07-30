@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
@@ -19,12 +19,12 @@ import { evidenceLabel } from "../engine/evidence";
 import { MOCK_MODEL_VERSION, MOCK_PROMPT_VERSION } from "../ai/mock";
 
 /**
- * All reviewer state lives here and is persisted to localStorage so a demo
- * survives a page refresh. The synthetic ledger itself is never mutated — human
+ * All reviewer state lives here and is persisted to localStorage so reviewer state
+ * survives a page refresh. The base ledger itself is never mutated — human
  * decisions are layered on top of it.
  */
 
-export const STORAGE_KEY = "spi-demo-state-v1";
+export const STORAGE_KEY = "spi-state-v1";
 
 export interface Toast {
   id: string;
@@ -140,7 +140,7 @@ interface AppState {
   declinePrecedent: (id: string) => void;
   pushToast: (toast: Omit<Toast, "id">) => void;
   dismissToast: (id: string) => void;
-  resetDemo: () => void;
+  resetAll: () => void;
   markHydrated: () => void;
 }
 
@@ -234,7 +234,7 @@ export const useAppStore = create<AppState>()(
       pushToast: (toast) => set((s) => ({ toasts: [...s.toasts, { ...toast, id: nextId("T") }] })),
       dismissToast: (id) => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
 
-      resetDemo: () =>
+      resetAll: () =>
         set({
           decisions: {},
           humanAuditEvents: [],

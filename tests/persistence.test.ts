@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @vitest-environment happy-dom
  */
 import { beforeEach, describe, expect, it } from "vitest";
@@ -83,7 +83,7 @@ describe("localStorage persistence", () => {
 
   it("clears storage-backed state when the demo is reset", async () => {
     useAppStore.getState().recordDecision({ record: hotel, action: "reject", note: "no" });
-    useAppStore.getState().resetDemo();
+    useAppStore.getState().resetAll();
     await useAppStore.persist.rehydrate();
     expect(useAppStore.getState().decisions).toEqual({});
     expect(useAppStore.getState().humanAuditEvents).toHaveLength(0);
